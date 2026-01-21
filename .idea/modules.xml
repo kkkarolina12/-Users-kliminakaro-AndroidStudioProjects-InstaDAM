@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/-Users-kliminakaro-AndroidStudioProjects-InstaDAM.iml" filepath="$PROJECT_DIR$/.idea/-Users-kliminakaro-AndroidStudioProjects-InstaDAM.iml" />
+      <module fileurl="file://$PROJECT_DIR$/instadam.iml" filepath="$PROJECT_DIR$/instadam.iml" />
     </modules>
   </component>
 </project>
