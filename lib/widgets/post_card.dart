@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/post_model.dart';
 import '../services/database_service.dart';
@@ -59,16 +60,49 @@ class _PostCardState extends State<PostCard> {
             Text('@${p.user}', style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
 
-            // Imagen placeholder (sin plugins)
-            Container(
-              height: 180,
-              width: double.infinity,
-              decoration: BoxDecoration(
+            // Display actual image
+            if (p.imagePath.isNotEmpty && p.imagePath != 'placeholder')
+              ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                color: Colors.black12,
+                child: Image.file(
+                  File(p.imagePath),
+                  height: 300,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 300,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.grey[300],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.broken_image, size: 60, color: Colors.grey),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Error al cargar imagen',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              )
+            else
+            // Fallback for posts without images
+              Container(
+                height: 300,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.black12,
+                ),
+                child: const Center(child: Icon(Icons.image, size: 60)),
               ),
-              child: const Center(child: Icon(Icons.image, size: 60)),
-            ),
 
             const SizedBox(height: 8),
             Text(p.description),
@@ -83,7 +117,10 @@ class _PostCardState extends State<PostCard> {
                     await _toggleLike();
                     await _loadExtras();
                   },
-                  icon: Icon(_liked ? Icons.favorite : Icons.favorite_border),
+                  icon: Icon(
+                    _liked ? Icons.favorite : Icons.favorite_border,
+                    color: _liked ? Colors.red : null,
+                  ),
                 ),
                 Text('${p.likes}'),
 
