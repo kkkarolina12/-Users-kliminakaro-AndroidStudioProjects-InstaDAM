@@ -56,16 +56,37 @@ class _InstaDAMAppState extends State<InstaDAMApp> {
 
     final start = (_rememberedUser != null && _rememberedUser!.isNotEmpty)
         ? FeedScreen(
+      username: _rememberedUser!,
+      onThemeChanged: _setTheme,
+      onLanguageChanged: _setLanguage,
+      currentLang: _lang,
+      isDarkMode: _themeMode == ThemeMode.dark,
+    )
+        : LoginScreen(
+      onLoggedIn: (user) async {
+        // Don't need to do anything here - we'll handle navigation differently
+      },
+    );
+
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'InstaDAM',
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: _themeMode,
+      home: Builder(  // Add Builder here
+        builder: (context) {
+          // Now this context has Navigator
+          return _rememberedUser != null && _rememberedUser!.isNotEmpty
+              ? FeedScreen(
             username: _rememberedUser!,
             onThemeChanged: _setTheme,
             onLanguageChanged: _setLanguage,
             currentLang: _lang,
             isDarkMode: _themeMode == ThemeMode.dark,
           )
-        : LoginScreen(
+              : LoginScreen(
             onLoggedIn: (user) async {
-              // si el login decide recordar usuario, lo guarda él;
-              // aquí solo navegamos.
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (_) => FeedScreen(
@@ -79,14 +100,8 @@ class _InstaDAMAppState extends State<InstaDAMApp> {
               );
             },
           );
-
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'InstaDAM',
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      themeMode: _themeMode,
-      home: start,
+        },
+      ),
     );
   }
 }

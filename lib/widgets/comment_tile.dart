@@ -5,7 +5,7 @@ class CommentTile extends StatelessWidget {
   final String text;
   final DateTime createdAt;
 
-  /// Opcional: menú/borrar/editar
+  /// menú/borrar/editar
   final VoidCallback? onLongPress;
 
   const CommentTile({
