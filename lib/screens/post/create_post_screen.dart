@@ -63,9 +63,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             _saving
                 ? const CircularProgressIndicator()
                 : SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(onPressed: _save, child: const Text('Publicar')),
-                  ),
+              width: double.infinity,
+              child: ElevatedButton(onPressed: _save, child: const Text('Publicar')),
+            ),
           ],
         ),
       ),

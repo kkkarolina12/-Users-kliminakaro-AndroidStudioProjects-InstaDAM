@@ -64,16 +64,16 @@ class _CommentsScreenState extends State<CommentsScreen> {
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : ListView.builder(
-                    itemCount: _comments.length,
-                    itemBuilder: (_, i) {
-                      final c = _comments[i];
-                      return ListTile(
-                        title: Text(c.user),
-                        subtitle: Text(c.text),
-                        trailing: Text(c.date.split('T').first),
-                      );
-                    },
-                  ),
+              itemCount: _comments.length,
+              itemBuilder: (_, i) {
+                final c = _comments[i];
+                return ListTile(
+                  title: Text(c.user),
+                  subtitle: Text(c.text),
+                  trailing: Text(c.date.split('T').first),
+                );
+              },
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(12),

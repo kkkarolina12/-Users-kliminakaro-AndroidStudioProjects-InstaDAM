@@ -14,18 +14,18 @@ class CommentModel {
   });
 
   Map<String, Object?> toMap() => {
-        'id': id,
-        'postId': postId,
-        'user': user,
-        'text': text,
-        'date': date,
-      };
+    'id': id,
+    'postId': postId,
+    'user': user,
+    'text': text,
+    'date': date,
+  };
 
   factory CommentModel.fromMap(Map<String, Object?> map) => CommentModel(
-        id: map['id'] as int?,
-        postId: map['postId'] as int,
-        user: map['user'] as String,
-        text: map['text'] as String,
-        date: map['date'] as String,
-      );
+    id: map['id'] as int?,
+    postId: map['postId'] as int,
+    user: map['user'] as String,
+    text: map['text'] as String,
+    date: map['date'] as String,
+  );
 }

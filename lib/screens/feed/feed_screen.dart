@@ -99,16 +99,16 @@ class _FeedScreenState extends State<FeedScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
-              onRefresh: _loadPosts,
-              child: ListView.builder(
-                itemCount: _posts.length,
-                itemBuilder: (_, i) => PostCard(
-                  post: _posts[i],
-                  currentUser: widget.username,
-                  onChanged: _loadPosts,
-                ),
-              ),
-            ),
+        onRefresh: _loadPosts,
+        child: ListView.builder(
+          itemCount: _posts.length,
+          itemBuilder: (_, i) => PostCard(
+            post: _posts[i],
+            currentUser: widget.username,
+            onChanged: _loadPosts,
+          ),
+        ),
+      ),
     );
   }
 }

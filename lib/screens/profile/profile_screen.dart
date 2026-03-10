@@ -86,12 +86,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Expanded(
               child: _showOnlyMine
                   ? ListView.builder(
-                      itemCount: _myPosts.length,
-                      itemBuilder: (_, i) => ListTile(
-                        title: Text(_myPosts[i].description),
-                        subtitle: Text(_myPosts[i].date),
-                      ),
-                    )
+                itemCount: _myPosts.length,
+                itemBuilder: (_, i) => ListTile(
+                  title: Text(_myPosts[i].description),
+                  subtitle: Text(_myPosts[i].date),
+                ),
+              )
                   : const Center(child: Text('Pulsa en Posts para ver tu feed filtrado')),
             ),
           ],
