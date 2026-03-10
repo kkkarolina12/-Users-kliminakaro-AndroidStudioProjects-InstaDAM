@@ -32,9 +32,14 @@ class _PostCardState extends State<PostCard> {
   }
 
   Future<void> _loadExtras() async {
-    final liked = await _db.isLikedByUser(postId: widget.post.id!, username: widget.currentUser);
+    final liked = await _db.isLikedByUser(
+      postId: widget.post.id!,
+      username: widget.currentUser,
+    );
     final count = await _db.getCommentsCount(widget.post.id!);
+
     if (!mounted) return;
+
     setState(() {
       _liked = liked;
       _commentsCount = count;
@@ -42,7 +47,10 @@ class _PostCardState extends State<PostCard> {
   }
 
   Future<void> _toggleLike() async {
-    await _db.toggleLike(postId: widget.post.id!, username: widget.currentUser);
+    await _db.toggleLike(
+      postId: widget.post.id!,
+      username: widget.currentUser,
+    );
     await widget.onChanged();
   }
 
@@ -50,101 +58,133 @@ class _PostCardState extends State<PostCard> {
   Widget build(BuildContext context) {
     final p = widget.post;
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('@${p.user}', style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-
-            // Display actual image
-            if (p.imagePath.isNotEmpty && p.imagePath != 'placeholder')
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.file(
-                  File(p.imagePath),
-                  height: 300,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 300,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.grey[300],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.broken_image, size: 60, color: Colors.grey),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Error al cargar imagen',
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              )
-            else
-            // Fallback for posts without images
-              Container(
-                height: 300,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.black12,
-                ),
-                child: const Center(child: Icon(Icons.image, size: 60)),
+    return Semantics(
+      container: true,
+      label:
+      'Publicación de ${p.user}. '
+          'Descripción: ${p.description}. '
+          'Fecha: ${p.date}. '
+          '${p.likes} me gusta y $_commentsCount comentarios.',
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '@${p.user}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
+              const SizedBox(height: 8),
 
-            const SizedBox(height: 8),
-            Text(p.description),
-            const SizedBox(height: 6),
-            Text(p.date, style: Theme.of(context).textTheme.bodySmall),
-
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () async {
-                    await _toggleLike();
-                    await _loadExtras();
-                  },
-                  icon: Icon(
-                    _liked ? Icons.favorite : Icons.favorite_border,
-                    color: _liked ? Colors.red : null,
+              if (p.imagePath.isNotEmpty && p.imagePath != 'placeholder')
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(
+                    File(p.imagePath),
+                    height: 300,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    semanticLabel: 'Imagen de la publicación de ${p.user}',
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 300,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.grey[300],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.broken_image,
+                              size: 60,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Error al cargar imagen',
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                )
+              else
+                Semantics(
+                  label: 'Publicación sin imagen',
+                  child: Container(
+                    height: 300,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.black12,
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.image, size: 60),
+                    ),
                   ),
                 ),
-                Text('${p.likes}'),
 
-                const SizedBox(width: 16),
-                TextButton.icon(
-                  onPressed: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => CommentsScreen(
-                          postId: p.id!,
-                          currentUser: widget.currentUser,
-                        ),
+              const SizedBox(height: 8),
+              Text(p.description),
+              const SizedBox(height: 6),
+              Text(
+                p.date,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Semantics(
+                    button: true,
+                    label: _liked
+                        ? 'Quitar me gusta. ${p.likes} me gusta'
+                        : 'Dar me gusta. ${p.likes} me gusta',
+                    child: IconButton(
+                      tooltip: _liked ? 'Quitar me gusta' : 'Dar me gusta',
+                      onPressed: () async {
+                        await _toggleLike();
+                        await _loadExtras();
+                      },
+                      icon: Icon(
+                        _liked ? Icons.favorite : Icons.favorite_border,
+                        color: _liked ? Colors.red : null,
                       ),
-                    );
-                    await _loadExtras();
-                    await widget.onChanged();
-                  },
-                  icon: const Icon(Icons.comment),
-                  label: Text('Ver comentarios ($_commentsCount)'),
-                ),
-              ],
-            )
-          ],
+                    ),
+                  ),
+                  Text('${p.likes}'),
+                  const SizedBox(width: 16),
+                  Semantics(
+                    button: true,
+                    label: 'Ver comentarios. $_commentsCount comentarios',
+                    child: TextButton.icon(
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => CommentsScreen(
+                              postId: p.id!,
+                              currentUser: widget.currentUser,
+                            ),
+                          ),
+                        );
+                        await _loadExtras();
+                        await widget.onChanged();
+                      },
+                      icon: const Icon(Icons.comment),
+                      label: Text('Ver comentarios ($_commentsCount)'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -31,7 +31,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (user == null) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Login incorrecto')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Login incorrecto')));
       return;
     }
 
@@ -52,14 +54,20 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _loading = true);
     try {
       await _db.registerUser(UserModel(username: u, password: p));
-      if (_remember) await _prefs.rememberUsername(u);
+      if (_remember) {
+        await _prefs.rememberUsername(u);
+      }
       if (!mounted) return;
       widget.onLoggedIn(u);
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Usuario ya existe')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Usuario ya existe')));
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -78,7 +86,10 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            TextField(controller: _userCtrl, decoration: const InputDecoration(labelText: 'Usuario')),
+            TextField(
+              controller: _userCtrl,
+              decoration: const InputDecoration(labelText: 'Usuario'),
+            ),
             TextField(
               controller: _passCtrl,
               decoration: const InputDecoration(labelText: 'Contraseña'),
@@ -87,7 +98,10 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 12),
             Row(
               children: [
-                Checkbox(value: _remember, onChanged: (v) => setState(() => _remember = v ?? true)),
+                Checkbox(
+                  value: _remember,
+                  onChanged: (v) => setState(() => _remember = v ?? true),
+                ),
                 const Text('Recordar usuario'),
               ],
             ),
@@ -96,11 +110,21 @@ class _LoginScreenState extends State<LoginScreen> {
             if (!_loading)
               Row(
                 children: [
-                  Expanded(child: ElevatedButton(onPressed: _login, child: const Text('Entrar'))),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _login,
+                      child: const Text('Entrar'),
+                    ),
+                  ),
                   const SizedBox(width: 10),
-                  Expanded(child: OutlinedButton(onPressed: _register, child: const Text('Registro'))),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _register,
+                      child: const Text('Registro'),
+                    ),
+                  ),
                 ],
-              )
+              ),
           ],
         ),
       ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'services/preferences_service.dart';
 import 'screens/auth/login_screen.dart';
-import 'screens/feed/feed_screen.dart';
+import 'screens/home/home.dart';
 import 'theme/app_theme.dart';
 
 class InstaDAMApp extends StatefulWidget {
@@ -51,22 +51,14 @@ class _InstaDAMAppState extends State<InstaDAMApp> {
   @override
   Widget build(BuildContext context) {
     if (!_ready) {
-      return const MaterialApp(home: Scaffold(body: Center(child: CircularProgressIndicator())));
+      return const MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
     }
-
-    final start = (_rememberedUser != null && _rememberedUser!.isNotEmpty)
-        ? FeedScreen(
-      username: _rememberedUser!,
-      onThemeChanged: _setTheme,
-      onLanguageChanged: _setLanguage,
-      currentLang: _lang,
-      isDarkMode: _themeMode == ThemeMode.dark,
-    )
-        : LoginScreen(
-      onLoggedIn: (user) async {
-        // Don't need to do anything here - we'll handle navigation differently
-      },
-    );
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -74,11 +66,10 @@ class _InstaDAMAppState extends State<InstaDAMApp> {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: _themeMode,
-      home: Builder(  // Add Builder here
+      home: Builder(
         builder: (context) {
-          // Now this context has Navigator
           return _rememberedUser != null && _rememberedUser!.isNotEmpty
-              ? FeedScreen(
+              ? HomeScreen(
             username: _rememberedUser!,
             onThemeChanged: _setTheme,
             onLanguageChanged: _setLanguage,
@@ -89,7 +80,7 @@ class _InstaDAMAppState extends State<InstaDAMApp> {
             onLoggedIn: (user) async {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
-                  builder: (_) => FeedScreen(
+                  builder: (_) => HomeScreen(
                     username: user,
                     onThemeChanged: _setTheme,
                     onLanguageChanged: _setLanguage,

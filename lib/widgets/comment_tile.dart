@@ -20,40 +20,47 @@ class CommentTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return ListTile(
-      dense: true,
-      onLongPress: onLongPress,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      leading: CircleAvatar(
-        child: Text(
-          username.isNotEmpty ? username[0].toUpperCase() : '?',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+    return Semantics(
+      label:
+      'Comentario de $username. $text. Fecha ${_formatDate(createdAt)}',
+      child: ListTile(
+        dense: true,
+        onLongPress: onLongPress,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 4,
         ),
-      ),
-      title: Row(
-        children: [
-          Expanded(
-            child: Text(
-              username,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w800,
+        leading: CircleAvatar(
+          child: Text(
+            username.isNotEmpty ? username[0].toUpperCase() : '?',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                username,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            _formatDate(createdAt),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.textTheme.bodySmall?.color?.withOpacity(0.65),
+            const SizedBox(width: 8),
+            Text(
+              _formatDate(createdAt),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.65),
+              ),
             ),
-          ),
-        ],
-      ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Text(text),
+          ],
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(text),
+        ),
       ),
     );
   }
