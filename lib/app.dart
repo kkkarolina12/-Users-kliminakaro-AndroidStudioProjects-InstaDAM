@@ -48,14 +48,18 @@ class _InstaDAMAppState extends State<InstaDAMApp> {
     setState(() => _lang = lang);
   }
 
+  void _handleAuthenticated(String username) {
+    setState(() {
+      _rememberedUser = username;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_ready) {
       return const MaterialApp(
         home: Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
+          body: Center(child: CircularProgressIndicator()),
         ),
       );
     }
@@ -74,7 +78,9 @@ class _InstaDAMAppState extends State<InstaDAMApp> {
         currentLang: _lang,
         isDarkMode: _themeMode == ThemeMode.dark,
       )
-          : const AuthScreen(),
+          : AuthScreen(
+        onAuthenticated: _handleAuthenticated,
+      ),
     );
   }
 }
