@@ -66,33 +66,15 @@ class _InstaDAMAppState extends State<InstaDAMApp> {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: _themeMode,
-      home: Builder(
-        builder: (context) {
-          return _rememberedUser != null && _rememberedUser!.isNotEmpty
-              ? HomeScreen(
-            username: _rememberedUser!,
-            onThemeChanged: _setTheme,
-            onLanguageChanged: _setLanguage,
-            currentLang: _lang,
-            isDarkMode: _themeMode == ThemeMode.dark,
-          )
-              : LoginScreen(
-            onLoggedIn: (user) async {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (_) => HomeScreen(
-                    username: user,
-                    onThemeChanged: _setTheme,
-                    onLanguageChanged: _setLanguage,
-                    currentLang: _lang,
-                    isDarkMode: _themeMode == ThemeMode.dark,
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
+      home: _rememberedUser != null && _rememberedUser!.isNotEmpty
+          ? HomeScreen(
+        username: _rememberedUser!,
+        onThemeChanged: _setTheme,
+        onLanguageChanged: _setLanguage,
+        currentLang: _lang,
+        isDarkMode: _themeMode == ThemeMode.dark,
+      )
+          : const AuthScreen(),
     );
   }
 }
