@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
+
 import '../../models/post_model.dart';
 import '../../services/database_service.dart';
 import '../../widgets/post_card.dart';
@@ -28,7 +29,8 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  final _db = DatabaseService.instance;
+  final DatabaseService _db = DatabaseService.instance;
+
   List<PostModel> _posts = [];
   bool _loading = true;
 
@@ -39,7 +41,9 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   Future<void> _loadPosts({bool initialLoad = false}) async {
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+    });
 
     final posts = await _db.getAllPosts();
 
@@ -59,13 +63,16 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   Future<void> _goCreatePost() async {
-    await Navigator.push(
+    final created = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (_) => CreatePostScreen(username: widget.username),
       ),
     );
-    await _loadPosts();
+
+    if (created == true) {
+      await _loadPosts();
+    }
   }
 
   Future<void> _goProfile() async {
@@ -75,6 +82,7 @@ class _FeedScreenState extends State<FeedScreen> {
         builder: (_) => ProfileScreen(username: widget.username),
       ),
     );
+
     await _loadPosts();
   }
 
