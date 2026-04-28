@@ -23,9 +23,9 @@ class LikeButton extends StatelessWidget {
     return Semantics(
       button: true,
       enabled: enabled,
-      label: isLiked
-          ? 'Quitar me gusta. $likeCount me gusta'
-          : 'Dar me gusta. $likeCount me gusta',
+      label: isLiked ? 'Me gusta activado' : 'Me gusta desactivado',
+      value: '$likeCount likes',
+      hint: isLiked ? 'Doble toque para quitar me gusta' : 'Doble toque para dar me gusta',
       child: InkWell(
         onTap: enabled ? onToggle : null,
         borderRadius: BorderRadius.circular(12),

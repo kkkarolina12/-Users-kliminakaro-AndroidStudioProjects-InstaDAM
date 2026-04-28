@@ -1,5 +1,5 @@
  import 'package:flutter/material.dart';
-import '../../models/comment_model.dart';
+import '../../widgets/comment_tile.dart';
 import '../../services/database_service.dart';
 
 class CommentsScreen extends StatefulWidget {
@@ -67,10 +67,10 @@ class _CommentsScreenState extends State<CommentsScreen> {
               itemCount: _comments.length,
               itemBuilder: (_, i) {
                 final c = _comments[i];
-                return ListTile(
-                  title: Text(c.user),
-                  subtitle: Text(c.text),
-                  trailing: Text(c.date.split('T').first),
+                return CommentTile(
+                  username: c.user,
+                  text: c.text,
+                  createdAt: DateTime.parse(c.date),
                 );
               },
             ),
@@ -78,14 +78,28 @@ class _CommentsScreenState extends State<CommentsScreen> {
           Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
                   child: TextField(
                     controller: _ctrl,
-                    decoration: const InputDecoration(hintText: 'Añade un comentario...'),
+                    decoration: const InputDecoration(
+                      labelText: 'Añadir comentario',
+                      hintText: 'Escribe aquí tu comentario...',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
                 ),
-                IconButton(onPressed: _add, icon: const Icon(Icons.send)),
+                const SizedBox(width: 8),
+                Semantics(
+                  button: true,
+                  label: 'Enviar comentario',
+                  child: IconButton(
+                    onPressed: _add,
+                    icon: const Icon(Icons.send),
+                    tooltip: 'Enviar comentario',
+                  ),
+                ),
               ],
             ),
           )

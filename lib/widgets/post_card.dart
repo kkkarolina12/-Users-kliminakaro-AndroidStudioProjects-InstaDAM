@@ -313,9 +313,8 @@ class _PostCardState extends State<PostCard> {
         Expanded(
           child: Semantics(
             button: true,
-            toggled: _liked,
-            label: 'Me gusta',
-            value: _liked ? 'Activado' : 'Desactivado',
+            label: _liked ? 'Me gusta activado' : 'Me gusta desactivado',
+            value: '$_likesCount likes',
             hint: _liked
                 ? 'Doble toque para quitar me gusta'
                 : 'Doble toque para dar me gusta',
