@@ -4,8 +4,6 @@ class LikeButton extends StatelessWidget {
   final bool isLiked;
   final int likeCount;
   final VoidCallback onToggle;
-
-  /// Por si quieres bloquear el tap mientras guardas en SQFlite
   final bool enabled;
 
   const LikeButton({
@@ -23,30 +21,28 @@ class LikeButton extends StatelessWidget {
     return Semantics(
       button: true,
       enabled: enabled,
-      label: isLiked
-          ? 'Quitar me gusta. $likeCount me gusta'
-          : 'Dar me gusta. $likeCount me gusta',
-      child: InkWell(
-        onTap: enabled ? onToggle : null,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isLiked ? Icons.favorite : Icons.favorite_border,
-                color: isLiked ? Colors.red : theme.iconTheme.color,
-                size: 20,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                '$likeCount',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
+      toggled: isLiked,
+      label: 'Me gusta',
+      value: isLiked ? 'Activado' : 'Desactivado',
+      hint: isLiked
+          ? 'Doble toque para quitar me gusta. $likeCount me gusta en total'
+          : 'Doble toque para dar me gusta. $likeCount me gusta en total',
+      onTapHint: isLiked ? 'Quitar me gusta' : 'Dar me gusta',
+      child: OutlinedButton.icon(
+        onPressed: enabled ? onToggle : null,
+        icon: ExcludeSemantics(
+          child: Icon(
+            isLiked ? Icons.favorite : Icons.favorite_border,
+            color: isLiked ? Colors.red : theme.iconTheme.color,
+          ),
+        ),
+        label: ExcludeSemantics(
+          child: Text(isLiked ? 'Te gusta' : 'Me gusta'),
+        ),
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size.fromHeight(46),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
           ),
         ),
       ),

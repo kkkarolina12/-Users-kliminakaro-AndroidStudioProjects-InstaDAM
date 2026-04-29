@@ -40,11 +40,8 @@ class _PostCardState extends State<PostCard> {
       postId: widget.post.id!,
       username: widget.currentUser,
     );
-
     final commentsCount = await _db.getCommentsCount(widget.post.id!);
-
     if (!mounted) return;
-
     setState(() {
       _liked = liked;
       _commentsCount = commentsCount;
@@ -60,7 +57,6 @@ class _PostCardState extends State<PostCard> {
     if (widget.post.imagePath.isEmpty || widget.post.imagePath == 'placeholder') {
       return 'Publicación sin imagen';
     }
-
     return 'Imagen de la publicación de ${widget.post.user}. ${_safeDescription()}';
   }
 
@@ -73,7 +69,6 @@ class _PostCardState extends State<PostCard> {
 
   void _announceMessage(String message) {
     if (!mounted) return;
-
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -85,34 +80,22 @@ class _PostCardState extends State<PostCard> {
           ),
         ),
       );
-
-    SemanticsService.announce(
-      message,
-      Directionality.of(context),
-    );
+    SemanticsService.announce(message, Directionality.of(context));
   }
 
   Future<void> _toggleLike() async {
     final wasLiked = _liked;
-
-    await _db.toggleLike(
-      postId: widget.post.id!,
-      username: widget.currentUser,
-    );
-
+    await _db.toggleLike(postId: widget.post.id!, username: widget.currentUser);
     if (!mounted) return;
-
     setState(() {
       _liked = !wasLiked;
       _likesCount = wasLiked ? _likesCount - 1 : _likesCount + 1;
     });
-
     _announceMessage(
       _liked
           ? 'Has dado me gusta. $_likesCount me gusta.'
           : 'Has quitado me gusta. $_likesCount me gusta.',
     );
-
     await widget.onChanged();
     await _loadExtras();
   }
@@ -127,7 +110,6 @@ class _PostCardState extends State<PostCard> {
         ),
       ),
     );
-
     await _loadExtras();
     await widget.onChanged();
   }
@@ -139,16 +121,11 @@ class _PostCardState extends State<PostCard> {
           label: 'Avatar del usuario ${widget.post.user}',
           child: CircleAvatar(
             radius: 22,
-            backgroundColor: theme.colorScheme.primary.withOpacity(0.12),
+            backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
             child: ExcludeSemantics(
               child: Text(
-                widget.post.user.isNotEmpty
-                    ? widget.post.user[0].toUpperCase()
-                    : '?',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                ),
+                widget.post.user.isNotEmpty ? widget.post.user[0].toUpperCase() : '?',
+                style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
               ),
             ),
           ),
@@ -161,31 +138,26 @@ class _PostCardState extends State<PostCard> {
               children: [
                 Text(
                   '@${widget.post.user}',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   widget.post.date,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
+                    color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.75),
                   ),
                 ),
               ],
             ),
           ),
         ),
-        const ExcludeSemantics(
-          child: Icon(Icons.more_horiz),
-        ),
+        const ExcludeSemantics(child: Icon(Icons.more_horiz)),
       ],
     );
   }
 
   Widget _buildImage(ThemeData theme) {
-    if (widget.post.imagePath.isNotEmpty &&
-        widget.post.imagePath != 'placeholder') {
+    if (widget.post.imagePath.isNotEmpty && widget.post.imagePath != 'placeholder') {
       return Semantics(
         image: true,
         label: _buildImageDescription(),
@@ -209,19 +181,13 @@ class _PostCardState extends State<PostCard> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const ExcludeSemantics(
-                      child: Icon(
-                        Icons.broken_image_outlined,
-                        size: 56,
-                        color: Colors.grey,
-                      ),
+                      child: Icon(Icons.broken_image_outlined, size: 56, color: Colors.grey),
                     ),
                     const SizedBox(height: 8),
                     ExcludeSemantics(
                       child: Text(
                         'Error al cargar imagen',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey.shade700,
-                        ),
+                        style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey.shade700),
                       ),
                     ),
                   ],
@@ -243,17 +209,15 @@ class _PostCardState extends State<PostCard> {
           borderRadius: BorderRadius.circular(16),
           gradient: LinearGradient(
             colors: [
-              theme.colorScheme.primary.withOpacity(0.12),
-              theme.colorScheme.secondary.withOpacity(0.10),
+              theme.colorScheme.primary.withValues(alpha: 0.12),
+              theme.colorScheme.secondary.withValues(alpha: 0.10),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
         child: const Center(
-          child: ExcludeSemantics(
-            child: Icon(Icons.image_outlined, size: 60),
-          ),
+          child: ExcludeSemantics(child: Icon(Icons.image_outlined, size: 60)),
         ),
       ),
     );
@@ -272,18 +236,13 @@ class _PostCardState extends State<PostCard> {
               const SizedBox(height: 14),
               _buildImage(theme),
               const SizedBox(height: 14),
-              Text(
-                _safeDescription(),
-                style: theme.textTheme.bodyLarge,
-              ),
+              Text(_safeDescription(), style: theme.textTheme.bodyLarge),
               const SizedBox(height: 10),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceVariant.withOpacity(0.45),
+                  // FIX: surfaceVariant → surfaceContainerHighest
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: ExcludeSemantics(
@@ -313,12 +272,9 @@ class _PostCardState extends State<PostCard> {
         Expanded(
           child: Semantics(
             button: true,
-            toggled: _liked,
-            label: 'Me gusta',
-            value: _liked ? 'Activado' : 'Desactivado',
-            hint: _liked
-                ? 'Doble toque para quitar me gusta'
-                : 'Doble toque para dar me gusta',
+            label: _liked ? 'Me gusta activado' : 'Me gusta desactivado',
+            value: '$_likesCount likes',
+            hint: _liked ? 'Doble toque para quitar me gusta' : 'Doble toque para dar me gusta',
             child: OutlinedButton.icon(
               onPressed: _toggleLike,
               icon: ExcludeSemantics(
@@ -327,14 +283,10 @@ class _PostCardState extends State<PostCard> {
                   color: _liked ? Colors.red : null,
                 ),
               ),
-              label: ExcludeSemantics(
-                child: Text(_liked ? 'Te gusta' : 'Me gusta'),
-              ),
+              label: ExcludeSemantics(child: Text(_liked ? 'Te gusta' : 'Me gusta')),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(46),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
             ),
           ),
@@ -348,17 +300,11 @@ class _PostCardState extends State<PostCard> {
             hint: 'Doble toque para abrir los comentarios',
             child: FilledButton.tonalIcon(
               onPressed: _openComments,
-              icon: const ExcludeSemantics(
-                child: Icon(Icons.comment_outlined),
-              ),
-              label: ExcludeSemantics(
-                child: Text('Comentarios'),
-              ),
+              icon: const ExcludeSemantics(child: Icon(Icons.comment_outlined)),
+              label: const ExcludeSemantics(child: Text('Comentarios')),
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(46),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
             ),
           ),
@@ -370,14 +316,11 @@ class _PostCardState extends State<PostCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Card(
       elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.08),
+      shadowColor: Colors.black.withValues(alpha: 0.08),
       margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(22),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
