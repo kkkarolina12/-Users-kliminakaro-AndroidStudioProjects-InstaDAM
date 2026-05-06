@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../services/preferences_service.dart';
 import '../../services/database_service.dart';
 import '../../models/post_model.dart';
+import '../../widgets/post_card.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String username;
@@ -58,45 +60,171 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final profileName = _name.isEmpty ? widget.username : _name;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      body: SingleChildScrollView(
         child: Column(
           children: [
-            ListTile(
-              title: Text(_name.isEmpty ? widget.username : _name, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text('@${widget.username}'),
-              trailing: IconButton(onPressed: _editName, icon: const Icon(Icons.edit)),
-            ),
-            const SizedBox(height: 10),
-            InkWell(
-              onTap: () => setState(() => _showOnlyMine = !_showOnlyMine),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+            // 1. Capçalera del perfil
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
                 children: [
-                  const Text('Posts: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text('$_postsCount'),
-                  const SizedBox(width: 10),
-                  Text(_showOnlyMine ? '(viendo solo los tuyos)' : '(pulsa para filtrar)'),
+                  Row(
+                    children: [
+                      Semantics(
+                        label: 'Foto de perfil de $profileName',
+                        image: true,
+                        child: CircleAvatar(
+                          radius: 40,
+                          backgroundColor: theme.colorScheme.primaryContainer,
+                          child: Text(
+                            profileName.isNotEmpty ? profileName[0].toUpperCase() : '?',
+                            style: theme.textTheme.headlineMedium,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              profileName,
+                              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              '@${widget.username}',
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                            const Text('Bio: Amante de la fotografía y el código.'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // Estadístiques agrupades
+                  MergeSemantics(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildStatColumn('Posts', _postsCount.toString()),
+                        _buildStatColumn('Seguidores', '120'),
+                        _buildStatColumn('Siguiendo', '85'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // 3. Botó "Editar perfil"
+                  Semantics(
+                    button: true,
+                    label: 'Editar perfil',
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 48, // Mida mínima 48dp
+                      child: OutlinedButton(
+                        onPressed: _editName,
+                        child: const Text('Editar perfil'),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: _showOnlyMine
-                  ? ListView.builder(
-                itemCount: _myPosts.length,
-                itemBuilder: (_, i) => ListTile(
-                  title: Text(_myPosts[i].description),
-                  subtitle: Text(_myPosts[i].date),
+            const Divider(),
+            // Selector de vista
+            Row(
+              children: [
+                Expanded(
+                  child: IconButton(
+                    onPressed: () => setState(() => _showOnlyMine = false),
+                    icon: Icon(Icons.grid_on, color: !_showOnlyMine ? theme.colorScheme.primary : null),
+                    tooltip: 'Vista de cuadrícula',
+                  ),
                 ),
-              )
-                  : const Center(child: Text('Pulsa en Posts para ver tu feed filtrado')),
+                Expanded(
+                  child: IconButton(
+                    onPressed: () => setState(() => _showOnlyMine = true),
+                    icon: Icon(Icons.list, color: _showOnlyMine ? theme.colorScheme.primary : null),
+                    tooltip: 'Vista de feed',
+                  ),
+                ),
+              ],
             ),
+            const SizedBox(height: 8),
+            // Contenido (Grid o Feed)
+            _showOnlyMine ? _buildFeedView() : _buildGridView(),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildStatColumn(String label, String value) {
+    return Column(
+      children: [
+        Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+      ],
+    );
+  }
+
+  Widget _buildGridView() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(8),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+      ),
+      itemCount: _myPosts.length,
+      itemBuilder: (context, i) {
+        final post = _myPosts[i];
+        final desc = post.description.isEmpty ? 'Sense descripció' : post.description;
+        return Semantics(
+          label: 'Post ${i + 1} de ${_myPosts.length}. $desc. ${post.likes} likes.',
+          button: true,
+          hint: 'Doble toque para abrir el post',
+          child: InkWell(
+            onTap: () {
+              // Simular apertura
+            },
+            child: Container(
+              color: Colors.grey.shade200,
+              child: post.imagePath.isNotEmpty && post.imagePath != 'placeholder'
+                  ? Image.file(File(post.imagePath), fit: BoxFit.cover)
+                  : const Icon(Icons.image),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFeedView() {
+    if (_myPosts.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(20.0),
+        child: Center(child: Text('No hay publicaciones todavía.')),
+      );
+    }
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _myPosts.length,
+      itemBuilder: (context, i) {
+        return PostCard(
+          post: _myPosts[i],
+          currentUser: widget.username,
+          onChanged: _load,
+        );
+      },
     );
   }
 }
