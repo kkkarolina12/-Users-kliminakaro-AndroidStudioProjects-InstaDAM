@@ -14,6 +14,7 @@ class FeedScreen extends StatefulWidget {
   final void Function(String lang) onLanguageChanged;
   final String currentLang;
   final bool isDarkMode;
+  final VoidCallback onLogout;
 
   const FeedScreen({
     super.key,
@@ -22,6 +23,7 @@ class FeedScreen extends StatefulWidget {
     required this.onLanguageChanged,
     required this.currentLang,
     required this.isDarkMode,
+    required this.onLogout,
   });
 
   @override
@@ -58,6 +60,7 @@ class _FeedScreenState extends State<FeedScreen> {
       SemanticsService.announce(
         'Feed actualizado. ${_posts.length} publicaciones disponibles.',
         Directionality.of(context),
+        assertiveness: Assertiveness.assertive,
       );
     }
   }
@@ -100,7 +103,7 @@ class _FeedScreenState extends State<FeedScreen> {
     );
 
     if (loggedOut == true && mounted) {
-      Navigator.of(context).pop();
+      widget.onLogout();
     }
   }
 

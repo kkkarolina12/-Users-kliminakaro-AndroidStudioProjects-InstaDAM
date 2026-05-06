@@ -50,6 +50,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         SemanticsService.announce(
           'Selección de imagen cancelada.',
           Directionality.of(context),
+          assertiveness: Assertiveness.assertive,
         );
         return;
       }
@@ -62,12 +63,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       SemanticsService.announce(
         'Imagen seleccionada correctamente.',
         Directionality.of(context),
+        assertiveness: Assertiveness.assertive,
       );
     } catch (_) {
       if (!mounted) return;
       SemanticsService.announce(
         'Error al seleccionar la imagen.',
         Directionality.of(context),
+        assertiveness: Assertiveness.assertive,
       );
 
       ScaffoldMessenger.of(context)
@@ -82,7 +85,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   void _announceError(String message) {
     if (!mounted) return;
-    SemanticsService.announce(message, Directionality.of(context));
+    SemanticsService.announce(message, Directionality.of(context), assertiveness: Assertiveness.assertive);
   }
 
   Future<void> _save() async {
@@ -132,6 +135,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       SemanticsService.announce(
         'Publicación creada correctamente.',
         Directionality.of(context),
+        assertiveness: Assertiveness.assertive,
       );
 
       Navigator.pop(context, true);

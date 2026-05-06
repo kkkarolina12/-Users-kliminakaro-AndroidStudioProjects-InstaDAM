@@ -1,14 +1,16 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
+
 import '../models/post_model.dart';
 import '../services/database_service.dart';
 import '../screens/feed/comments_screen.dart';
+import 'like_button.dart';
 
 class PostCard extends StatefulWidget {
   final PostModel post;
   final String currentUser;
-  final Future<void> Function() onChanged;
+  final VoidCallback onChanged;
 
   const PostCard({
     super.key,
@@ -24,97 +26,39 @@ class PostCard extends StatefulWidget {
 class _PostCardState extends State<PostCard> {
   final _db = DatabaseService.instance;
 
-  bool _liked = false;
+  bool _isLiked = false;
+  bool _toggling = false;
   int _commentsCount = 0;
-  late int _likesCount;
 
   @override
   void initState() {
     super.initState();
-    _likesCount = widget.post.likes;
-    _loadExtras();
+    _loadState();
   }
 
-  Future<void> _loadExtras() async {
+  Future<void> _loadState() async {
     final liked = await _db.isLikedByUser(
       postId: widget.post.id!,
       username: widget.currentUser,
     );
-
-    final commentsCount = await _db.getCommentsCount(widget.post.id!);
-
+    final count = await _db.getCommentsCount(widget.post.id!);
     if (!mounted) return;
-
     setState(() {
-      _liked = liked;
-      _commentsCount = commentsCount;
+      _isLiked = liked;
+      _commentsCount = count;
     });
   }
 
-  String _safeDescription() {
-    final description = widget.post.description.trim();
-    return description.isEmpty ? 'Sin descripción' : description;
-  }
-
-  String _buildImageDescription() {
-    if (widget.post.imagePath.isEmpty || widget.post.imagePath == 'placeholder') {
-      return 'Publicación sin imagen';
-    }
-
-    return 'Imagen de la publicación de ${widget.post.user}. ${_safeDescription()}';
-  }
-
-  String _buildPostSummary() {
-    return 'Publicación de ${widget.post.user}. '
-        'Fecha ${widget.post.date}. '
-        'Descripción: ${_safeDescription()}. '
-        '$_likesCount me gusta y $_commentsCount comentarios.';
-  }
-
-  void _announceMessage(String message) {
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          duration: const Duration(seconds: 2),
-          content: Semantics(
-            liveRegion: true,
-            child: Text(message),
-          ),
-        ),
-      );
-
-    SemanticsService.announce(
-      message,
-      Directionality.of(context),
-    );
-  }
-
   Future<void> _toggleLike() async {
-    final wasLiked = _liked;
-
+    if (_toggling) return;
+    setState(() => _toggling = true);
     await _db.toggleLike(
       postId: widget.post.id!,
       username: widget.currentUser,
     );
-
-    if (!mounted) return;
-
-    setState(() {
-      _liked = !wasLiked;
-      _likesCount = wasLiked ? _likesCount - 1 : _likesCount + 1;
-    });
-
-    _announceMessage(
-      _liked
-          ? 'Has dado me gusta. $_likesCount me gusta.'
-          : 'Has quitado me gusta. $_likesCount me gusta.',
-    );
-
-    await widget.onChanged();
-    await _loadExtras();
+    await _loadState();
+    setState(() => _toggling = false);
+    widget.onChanged();
   }
 
   Future<void> _openComments() async {
@@ -127,267 +71,140 @@ class _PostCardState extends State<PostCard> {
         ),
       ),
     );
-
-    await _loadExtras();
-    await widget.onChanged();
+    await _loadState();
   }
 
-  Widget _buildHeader(ThemeData theme) {
-    return Row(
-      children: [
-        Semantics(
-          label: 'Avatar del usuario ${widget.post.user}',
-          child: CircleAvatar(
-            radius: 22,
-            backgroundColor: theme.colorScheme.primary.withOpacity(0.12),
-            child: ExcludeSemantics(
-              child: Text(
-                widget.post.user.isNotEmpty
-                    ? widget.post.user[0].toUpperCase()
-                    : '?',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ExcludeSemantics(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '@${widget.post.user}',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  widget.post.date,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const ExcludeSemantics(
-          child: Icon(Icons.more_horiz),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildImage(ThemeData theme) {
-    if (widget.post.imagePath.isNotEmpty &&
-        widget.post.imagePath != 'placeholder') {
-      return Semantics(
-        image: true,
-        label: _buildImageDescription(),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Image.file(
-            File(widget.post.imagePath),
-            height: 260,
-            width: double.infinity,
-            fit: BoxFit.cover,
-            excludeFromSemantics: true,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                height: 260,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: Colors.grey.shade300,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const ExcludeSemantics(
-                      child: Icon(
-                        Icons.broken_image_outlined,
-                        size: 56,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ExcludeSemantics(
-                      child: Text(
-                        'Error al cargar imagen',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      );
-    }
-
-    return Semantics(
-      image: true,
-      label: 'Publicación sin imagen',
-      child: Container(
-        height: 180,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            colors: [
-              theme.colorScheme.primary.withOpacity(0.12),
-              theme.colorScheme.secondary.withOpacity(0.10),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: const Center(
-          child: ExcludeSemantics(
-            child: Icon(Icons.image_outlined, size: 60),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSummaryBlock(ThemeData theme) {
-    return MergeSemantics(
-      child: Semantics(
-        readOnly: true,
-        label: _buildPostSummary(),
-        child: ExcludeSemantics(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(theme),
-              const SizedBox(height: 14),
-              _buildImage(theme),
-              const SizedBox(height: 14),
-              Text(
-                _safeDescription(),
-                style: theme.textTheme.bodyLarge,
-              ),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceVariant.withOpacity(0.45),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: ExcludeSemantics(
-                  child: Row(
-                    children: [
-                      const Icon(Icons.favorite_outline, size: 18),
-                      const SizedBox(width: 6),
-                      Text('$_likesCount me gusta'),
-                      const SizedBox(width: 16),
-                      const Icon(Icons.mode_comment_outlined, size: 18),
-                      const SizedBox(width: 6),
-                      Text('$_commentsCount comentarios'),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActions(ThemeData theme) {
-    return Row(
-      children: [
-        Expanded(
-          child: Semantics(
-            button: true,
-            toggled: _liked,
-            label: 'Me gusta',
-            value: _liked ? 'Activado' : 'Desactivado',
-            hint: _liked
-                ? 'Doble toque para quitar me gusta'
-                : 'Doble toque para dar me gusta',
-            child: OutlinedButton.icon(
-              onPressed: _toggleLike,
-              icon: ExcludeSemantics(
-                child: Icon(
-                  _liked ? Icons.favorite : Icons.favorite_border,
-                  color: _liked ? Colors.red : null,
-                ),
-              ),
-              label: ExcludeSemantics(
-                child: Text(_liked ? 'Te gusta' : 'Me gusta'),
-              ),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(46),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Semantics(
-            button: true,
-            label: 'Comentarios',
-            value: '$_commentsCount comentarios',
-            hint: 'Doble toque para abrir los comentarios',
-            child: FilledButton.tonalIcon(
-              onPressed: _openComments,
-              icon: const ExcludeSemantics(
-                child: Icon(Icons.comment_outlined),
-              ),
-              label: ExcludeSemantics(
-                child: Text('Comentarios'),
-              ),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(46),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
+  String _formatDate(String iso) {
+    final dt = DateTime.tryParse(iso);
+    if (dt == null) return iso;
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${two(dt.day)}/${two(dt.month)}/${dt.year} ${two(dt.hour)}:${two(dt.minute)}';
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final post = widget.post;
+    final hasImage =
+        post.imagePath.isNotEmpty && post.imagePath != 'placeholder';
 
     return Card(
-      elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.08),
       margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(22),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSummaryBlock(theme),
-            const SizedBox(height: 14),
-            _buildActions(theme),
-          ],
-        ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 2,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  child: Text(
+                    post.user.isNotEmpty ? post.user[0].toUpperCase() : '?',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '@${post.user}',
+                        style: theme.textTheme.titleSmall
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      Text(
+                        _formatDate(post.date),
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Image
+          if (hasImage)
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.zero),
+              child: Image.file(
+                File(post.imagePath),
+                width: double.infinity,
+                height: 240,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  height: 140,
+                  color: theme.colorScheme.surfaceVariant,
+                  child: const Center(
+                      child: Icon(Icons.broken_image_outlined, size: 48)),
+                ),
+              ),
+            ),
+
+          // Description
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
+            child: Text(
+              post.description,
+              style: theme.textTheme.bodyMedium,
+            ),
+          ),
+
+          // Likes count
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Text(
+              '${post.likes} me gusta',
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ),
+
+          const Divider(height: 16, indent: 12, endIndent: 12),
+
+          // Actions
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: LikeButton(
+                    isLiked: _isLiked,
+                    likeCount: post.likes,
+                    onToggle: _toggleLike,
+                    enabled: !_toggling,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Semantics(
+                    button: true,
+                    label: 'Ver comentarios. $_commentsCount comentarios',
+                    hint: 'Doble toque para abrir los comentarios',
+                    child: OutlinedButton.icon(
+                      onPressed: _openComments,
+                      icon: const ExcludeSemantics(
+                          child: Icon(Icons.comment_outlined)),
+                      label: ExcludeSemantics(
+                          child: Text('$_commentsCount comentarios')),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(46),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

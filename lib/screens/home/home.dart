@@ -10,6 +10,7 @@ class HomeScreen extends StatelessWidget {
   final void Function(String lang) onLanguageChanged;
   final String currentLang;
   final bool isDarkMode;
+  final VoidCallback onLogout;
 
   const HomeScreen({
     super.key,
@@ -18,6 +19,7 @@ class HomeScreen extends StatelessWidget {
     required this.onLanguageChanged,
     required this.currentLang,
     required this.isDarkMode,
+    required this.onLogout,
   });
 
   @override
@@ -62,6 +64,7 @@ class HomeScreen extends StatelessWidget {
                         onLanguageChanged: onLanguageChanged,
                         currentLang: currentLang,
                         isDarkMode: isDarkMode,
+                        onLogout: onLogout,
                       ),
                     ),
                   );
@@ -123,32 +126,14 @@ class HomeScreen extends StatelessWidget {
                     ),
                   );
 
-                  if (loggedOut == true && context.mounted) {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (_) => const InstaDAMHomeReset(),
-                      ),
-                          (route) => false,
-                    );
+                  if (loggedOut == true) {
+                    onLogout();
                   }
                 },
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class InstaDAMHomeReset extends StatelessWidget {
-  const InstaDAMHomeReset({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
       ),
     );
   }

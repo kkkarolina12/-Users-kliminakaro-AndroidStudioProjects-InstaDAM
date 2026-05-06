@@ -1,51 +1,94 @@
- import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import '../../models/comment_model.dart';
 import '../../services/database_service.dart';
+import '../../widgets/comment_tile.dart';
 
 class CommentsScreen extends StatefulWidget {
   final int postId;
   final String currentUser;
 
-  const CommentsScreen({super.key, required this.postId, required this.currentUser});
+  const CommentsScreen({
+    super.key,
+    required this.postId,
+    required this.currentUser,
+  });
 
   @override
   State<CommentsScreen> createState() => _CommentsScreenState();
 }
 
 class _CommentsScreenState extends State<CommentsScreen> {
-  final _db = DatabaseService.instance;
-  final _ctrl = TextEditingController();
+  final DatabaseService _db = DatabaseService.instance;
+  final TextEditingController _ctrl = TextEditingController();
+
   List<CommentModel> _comments = [];
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _loadComments();
   }
 
-  Future<void> _load() async {
-    setState(() => _loading = true);
+  Future<void> _loadComments() async {
+    setState(() {
+      _loading = true;
+    });
+
     final list = await _db.getCommentsByPost(widget.postId);
+
+    if (!mounted) return;
+
     setState(() {
       _comments = list;
       _loading = false;
     });
   }
 
-  Future<void> _add() async {
-    final text = _ctrl.text.trim();
-    if (text.isEmpty) return;
+  void _showAccessibleMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 2),
+        ),
+      );
 
-    await _db.addComment(CommentModel(
+    SemanticsService.announce(
+      message,
+      Directionality.of(context),
+      assertiveness: Assertiveness.assertive,
+    );
+  }
+
+  Future<void> _addComment() async {
+    final text = _ctrl.text.trim();
+
+    if (text.isEmpty) {
+      _showAccessibleMessage('Escribe un comentario antes de enviar');
+      return;
+    }
+
+    final newComment = CommentModel(
       postId: widget.postId,
       user: widget.currentUser,
       text: text,
       date: DateTime.now().toIso8601String(),
-    ));
+    );
+
+    await _db.addComment(newComment);
 
     _ctrl.clear();
-    await _load();
+    await _loadComments();
+
+    if (!mounted) return;
+    _showAccessibleMessage('Comentario añadido correctamente');
+  }
+
+  DateTime _parseDate(String value) {
+    return DateTime.tryParse(value) ?? DateTime.now();
   }
 
   @override
@@ -56,39 +99,82 @@ class _CommentsScreenState extends State<CommentsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final commentsCount = _comments.length;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Comentarios')),
+      appBar: AppBar(
+        title: Semantics(
+          header: true,
+          child: ExcludeSemantics(
+            child: Text('Comentarios ($commentsCount)'),
+          ),
+        ),
+      ),
       body: Column(
         children: [
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(
+              child: CircularProgressIndicator(),
+            )
+                : _comments.isEmpty
+                ? Center(
+              child: Semantics(
+                liveRegion: true,
+                child: const Text('Todavía no hay comentarios'),
+              ),
+            )
                 : ListView.builder(
+              padding: const EdgeInsets.only(top: 8, bottom: 8),
               itemCount: _comments.length,
-              itemBuilder: (_, i) {
-                final c = _comments[i];
-                return ListTile(
-                  title: Text(c.user),
-                  subtitle: Text(c.text),
-                  trailing: Text(c.date.split('T').first),
+              itemBuilder: (context, index) {
+                final c = _comments[index];
+                return CommentTile(
+                  username: c.user,
+                  text: c.text,
+                  createdAt: _parseDate(c.date),
                 );
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+              child: Column(
+                children: [
+                  TextField(
                     controller: _ctrl,
-                    decoration: const InputDecoration(hintText: 'Añade un comentario...'),
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => _addComment(),
+                    decoration: const InputDecoration(
+                      labelText: 'Escribe un comentario',
+                      hintText: 'Añade tu comentario',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
-                ),
-                IconButton(onPressed: _add, icon: const Icon(Icons.send)),
-              ],
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: Semantics(
+                      button: true,
+                      label: 'Enviar comentario',
+                      hint: 'Doble toque para publicar el comentario',
+                      child: FilledButton.icon(
+                        onPressed: _addComment,
+                        icon: const ExcludeSemantics(
+                          child: Icon(Icons.send),
+                        ),
+                        label: const ExcludeSemantics(
+                          child: Text('Enviar'),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          )
+          ),
         ],
       ),
     );

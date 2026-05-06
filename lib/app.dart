@@ -54,6 +54,12 @@ class _InstaDAMAppState extends State<InstaDAMApp> {
     });
   }
 
+  void _handleLogout() {
+    setState(() {
+      _rememberedUser = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_ready) {
@@ -77,6 +83,7 @@ class _InstaDAMAppState extends State<InstaDAMApp> {
         onLanguageChanged: _setLanguage,
         currentLang: _lang,
         isDarkMode: _themeMode == ThemeMode.dark,
+        onLogout: _handleLogout,
       )
           : AuthScreen(
         onAuthenticated: _handleAuthenticated,
