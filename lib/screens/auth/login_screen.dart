@@ -533,6 +533,18 @@ class _RegisterFormState extends State<RegisterForm> {
     final password = _passCtrl.text.trim();
 
     try {
+      final exists = await _db.usernameExists(username);
+
+      if (!mounted) return;
+
+      if (exists) {
+        setState(() {
+          _isLoading = false;
+          _globalError = 'Ese nombre de usuario ya está en uso.';
+        });
+        return;
+      }
+
       await _db.registerUser(
         UserModel(username: username, password: password),
       );
@@ -547,12 +559,17 @@ class _RegisterFormState extends State<RegisterForm> {
       });
 
       widget.onAuthenticated(username);
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
+
+      final msg = e.toString().toLowerCase();
+      final isDuplicate = msg.contains('unique') || msg.contains('duplicate') || msg.contains('constraint');
 
       setState(() {
         _isLoading = false;
-        _globalError = 'Ese usuario ya existe.';
+        _globalError = isDuplicate
+            ? 'Ese nombre de usuario ya está en uso.'
+            : 'Error inesperado al crear la cuenta. Inténtalo de nuevo.';
       });
     }
   }

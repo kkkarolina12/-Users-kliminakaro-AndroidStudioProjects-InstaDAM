@@ -16,53 +16,75 @@ class DatabaseService {
     return _db!;
   }
 
+  Future<void> _createTables(Database d) async {
+    await d.execute('''
+      CREATE TABLE IF NOT EXISTS users(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE,
+        password TEXT
+      )
+    ''');
+
+    await d.execute('''
+      CREATE TABLE IF NOT EXISTS posts(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user TEXT,
+        imagePath TEXT,
+        description TEXT,
+        date TEXT,
+        likes INTEGER DEFAULT 0
+      )
+    ''');
+
+    await d.execute('''
+      CREATE TABLE IF NOT EXISTS likes(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        postId INTEGER,
+        user TEXT
+      )
+    ''');
+
+    await d.execute('''
+      CREATE TABLE IF NOT EXISTS comments(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        postId INTEGER,
+        user TEXT,
+        text TEXT,
+        date TEXT
+      )
+    ''');
+  }
+
   Future<Database> _initDb() async {
     final path = join(await getDatabasesPath(), 'instadam.db');
     return openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (d, v) async {
-        await d.execute('''
-          CREATE TABLE users(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE,
-            password TEXT
-          )
-        ''');
-
-        await d.execute('''
-          CREATE TABLE posts(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user TEXT,
-            imagePath TEXT,
-            description TEXT,
-            date TEXT,
-            likes INTEGER DEFAULT 0
-          )
-        ''');
-
-        await d.execute('''
-          CREATE TABLE likes(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            postId INTEGER,
-            user TEXT
-          )
-        ''');
-
-        await d.execute('''
-          CREATE TABLE comments(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            postId INTEGER,
-            user TEXT,
-            text TEXT,
-            date TEXT
-          )
-        ''');
+        await _createTables(d);
+      },
+      onUpgrade: (d, oldVersion, newVersion) async {
+        // Migración: recrear tablas preservando datos existentes
+        await d.execute('CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT)');
+        await d.execute('CREATE TABLE IF NOT EXISTS posts(id INTEGER PRIMARY KEY AUTOINCREMENT, user TEXT, imagePath TEXT, description TEXT, date TEXT, likes INTEGER DEFAULT 0)');
+        await d.execute('CREATE TABLE IF NOT EXISTS likes(id INTEGER PRIMARY KEY AUTOINCREMENT, postId INTEGER, user TEXT)');
+        await d.execute('CREATE TABLE IF NOT EXISTS comments(id INTEGER PRIMARY KEY AUTOINCREMENT, postId INTEGER, user TEXT, text TEXT, date TEXT)');
       },
     );
   }
 
   // USERS
+  Future<bool> usernameExists(String username) async {
+    final d = await db;
+    final rows = await d.query(
+      'users',
+      where: 'username = ?',
+      whereArgs: [username],
+      limit: 1,
+    );
+    return rows.isNotEmpty;
+  }
+
   Future<int> registerUser(UserModel user) async {
     final d = await db;
     return d.insert('users', user.toMap(), conflictAlgorithm: ConflictAlgorithm.abort);
@@ -80,6 +102,28 @@ class DatabaseService {
   Future<int> createPost(PostModel post) async {
     final d = await db;
     return d.insert('posts', post.toMap());
+  }
+
+  Future<int> updatePost(int id, String newDescription) async {
+    final d = await db;
+    return d.update(
+      'posts',
+      {'description': newDescription},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> deletePost(int id) async {
+    final d = await db;
+    await d.transaction((txn) async {
+      // Borrar likes asociados
+      await txn.delete('likes', where: 'postId = ?', whereArgs: [id]);
+      // Borrar comentarios asociados
+      await txn.delete('comments', where: 'postId = ?', whereArgs: [id]);
+      // Borrar el post
+      await txn.delete('posts', where: 'id = ?', whereArgs: [id]);
+    });
   }
 
   Future<List<PostModel>> getAllPosts() async {
@@ -120,6 +164,11 @@ class DatabaseService {
   Future<int> addComment(CommentModel c) async {
     final d = await db;
     return d.insert('comments', c.toMap());
+  }
+
+  Future<int> deleteComment(int id) async {
+    final d = await db;
+    return d.delete('comments', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<List<CommentModel>> getCommentsByPost(int postId) async {

@@ -90,7 +90,7 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   Future<void> _goSettings() async {
-    final loggedOut = await Navigator.push<bool>(
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => SettingsScreen(
@@ -98,13 +98,10 @@ class _FeedScreenState extends State<FeedScreen> {
           currentLang: widget.currentLang,
           onThemeChanged: widget.onThemeChanged,
           onLanguageChanged: widget.onLanguageChanged,
+          onLogout: widget.onLogout,
         ),
       ),
     );
-
-    if (loggedOut == true && mounted) {
-      widget.onLogout();
-    }
   }
 
   @override

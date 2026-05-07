@@ -87,6 +87,37 @@ class _CommentsScreenState extends State<CommentsScreen> {
     _showAccessibleMessage('Comentario añadido correctamente');
   }
 
+  Future<void> _deleteComment(int commentId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Borrar comentario'),
+        content: const Text('¿Estás seguro de que quieres borrar este comentario?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Borrar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _db.deleteComment(commentId);
+      await _loadComments();
+      if (!mounted) return;
+      _showAccessibleMessage('Comentario borrado');
+    }
+  }
+
   DateTime _parseDate(String value) {
     return DateTime.tryParse(value) ?? DateTime.now();
   }
@@ -133,6 +164,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
                   username: c.user,
                   text: c.text,
                   createdAt: _parseDate(c.date),
+                  isOwner: c.user == widget.currentUser,
+                  onDelete: c.id != null ? () => _deleteComment(c.id!) : null,
                 );
               },
             ),

@@ -3,8 +3,9 @@ import '../feed/feed_screen.dart';
 import '../post/create_post_screen.dart';
 import '../profile/profile_screen.dart';
 import '../settings/settings_screen.dart';
+import '../search/search_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final String username;
   final void Function(bool darkMode) onThemeChanged;
   final void Function(String lang) onLanguageChanged;
@@ -23,117 +24,104 @@ class HomeScreen extends StatelessWidget {
   });
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
+
+  // Usamos una lista de funciones para reconstruir las pantallas si es necesario,
+  // o simplemente los widgets si son mayormente estáticos.
+  late List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateScreens();
+  }
+
+  // Actualizamos las pantallas cuando cambian las props
+  @override
+  void didUpdateWidget(HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isDarkMode != widget.isDarkMode || 
+        oldWidget.currentLang != widget.currentLang ||
+        oldWidget.username != widget.username) {
+      _updateScreens();
+    }
+  }
+
+  void _updateScreens() {
+    _screens = [
+      FeedScreen(
+        username: widget.username,
+        onThemeChanged: widget.onThemeChanged,
+        onLanguageChanged: widget.onLanguageChanged,
+        currentLang: widget.currentLang,
+        isDarkMode: widget.isDarkMode,
+        onLogout: widget.onLogout,
+      ),
+      const SearchScreen(),
+      CreatePostScreen(username: widget.username),
+      ProfileScreen(username: widget.username),
+      SettingsScreen(
+        isDarkMode: widget.isDarkMode,
+        currentLang: widget.currentLang,
+        onThemeChanged: widget.onThemeChanged,
+        onLanguageChanged: widget.onLanguageChanged,
+        onLogout: widget.onLogout,
+      ),
+    ];
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('InstaDAM'),
-        centerTitle: true,
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _screens,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/Logo.png',
-              width: 140,
-              height: 140,
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Bienvenido, @$username',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 30),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.home),
-                label: const Text('Ir al Feed'),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => FeedScreen(
-                        username: username,
-                        onThemeChanged: onThemeChanged,
-                        onLanguageChanged: onLanguageChanged,
-                        currentLang: currentLang,
-                        isDarkMode: isDarkMode,
-                        onLogout: onLogout,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.add_box),
-                label: const Text('Crear publicación'),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => CreatePostScreen(
-                        username: username,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.person),
-                label: const Text('Perfil'),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ProfileScreen(
-                        username: username,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.settings),
-                label: const Text('Configuración'),
-                onPressed: () async {
-                  final loggedOut = await Navigator.push<bool>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => SettingsScreen(
-                        isDarkMode: isDarkMode,
-                        currentLang: currentLang,
-                        onThemeChanged: onThemeChanged,
-                        onLanguageChanged: onLanguageChanged,
-                      ),
-                    ),
-                  );
-
-                  if (loggedOut == true) {
-                    onLogout();
-                  }
-                },
-              ),
-            ),
-          ],
-        ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed, // Asegura que se vean todos los items
+        selectedItemColor: Theme.of(context).primaryColor,
+        unselectedItemColor: Colors.grey,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Inicio',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            activeIcon: Icon(Icons.search_rounded),
+            label: 'Explorar',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_box_outlined),
+            activeIcon: Icon(Icons.add_box),
+            label: 'Crear',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Perfil',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings_outlined),
+            activeIcon: Icon(Icons.settings),
+            label: 'Ajustes',
+          ),
+        ],
       ),
     );
   }

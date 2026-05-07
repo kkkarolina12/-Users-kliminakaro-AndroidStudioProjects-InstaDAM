@@ -37,6 +37,8 @@ class _PostCardState extends State<PostCard> {
   }
 
   Future<void> _loadState() async {
+    if (widget.post.id == null) return;
+    
     final liked = await _db.isLikedByUser(
       postId: widget.post.id!,
       username: widget.currentUser,
@@ -50,7 +52,7 @@ class _PostCardState extends State<PostCard> {
   }
 
   Future<void> _toggleLike() async {
-    if (_toggling) return;
+    if (_toggling || widget.post.id == null) return;
     setState(() => _toggling = true);
     await _db.toggleLike(
       postId: widget.post.id!,
@@ -62,6 +64,7 @@ class _PostCardState extends State<PostCard> {
   }
 
   Future<void> _openComments() async {
+    if (widget.post.id == null) return;
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -72,6 +75,72 @@ class _PostCardState extends State<PostCard> {
       ),
     );
     await _loadState();
+  }
+
+  Future<void> _showEditDialog() async {
+    final controller = TextEditingController(text: widget.post.description);
+
+    final updated = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Editar publicación'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: 'Descripción'),
+          maxLines: 3,
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (controller.text.trim().isNotEmpty) {
+                await _db.updatePost(widget.post.id!, controller.text.trim());
+                if (!context.mounted) return;
+                Navigator.pop(context, true);
+              }
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+
+    if (updated == true) {
+      widget.onChanged();
+    }
+  }
+
+  Future<void> _showDeleteConfirm() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Borrar publicación'),
+        content: const Text('¿Estás seguro de que quieres borrar esta publicación? Esta acción no se puede deshacer.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Borrar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _db.deletePost(widget.post.id!);
+      widget.onChanged();
+    }
   }
 
   String _formatDate(String iso) {
@@ -123,6 +192,37 @@ class _PostCardState extends State<PostCard> {
                     ],
                   ),
                 ),
+                if (post.user == widget.currentUser)
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert),
+                    onSelected: (val) {
+                      if (val == 'edit') {
+                        _showEditDialog();
+                      } else if (val == 'delete') {
+                        _showDeleteConfirm();
+                      }
+                    },
+                    itemBuilder: (_) => [
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: ListTile(
+                          leading: Icon(Icons.edit),
+                          title: Text('Editar'),
+                          contentPadding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: ListTile(
+                          leading: Icon(Icons.delete, color: Colors.red),
+                          title: Text('Borrar', style: TextStyle(color: Colors.red)),
+                          contentPadding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -135,7 +235,7 @@ class _PostCardState extends State<PostCard> {
               child: Image.file(
                 File(post.imagePath),
                 width: double.infinity,
-                height: 240,
+                height: 300,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   height: 140,

@@ -5,6 +5,8 @@ class CommentTile extends StatelessWidget {
   final String text;
   final DateTime createdAt;
   final VoidCallback? onLongPress;
+  final VoidCallback? onDelete; // Added
+  final bool isOwner; // Added
 
   const CommentTile({
     super.key,
@@ -12,6 +14,8 @@ class CommentTile extends StatelessWidget {
     required this.text,
     required this.createdAt,
     this.onLongPress,
+    this.onDelete,
+    this.isOwner = false,
   });
 
   @override
@@ -69,6 +73,12 @@ class CommentTile extends StatelessWidget {
               child: Text(text),
             ),
           ),
+          trailing: isOwner && onDelete != null
+              ? IconButton(
+                  icon: const Icon(Icons.delete_outline, size: 20, color: Colors.red),
+                  onPressed: onDelete,
+                )
+              : null,
         ),
       ),
     );

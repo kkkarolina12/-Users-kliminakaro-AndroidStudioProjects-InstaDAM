@@ -6,6 +6,7 @@ class SettingsScreen extends StatefulWidget {
   final String currentLang;
   final void Function(bool darkMode) onThemeChanged;
   final void Function(String lang) onLanguageChanged;
+  final VoidCallback onLogout;
 
   const SettingsScreen({
     super.key,
@@ -13,6 +14,7 @@ class SettingsScreen extends StatefulWidget {
     required this.currentLang,
     required this.onThemeChanged,
     required this.onLanguageChanged,
+    required this.onLogout,
   });
 
   @override
@@ -21,9 +23,9 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final _prefs = PreferencesService();
-  bool _dark = false;
+  late bool _dark;
+  late String _lang;
   bool _noti = true;
-  String _lang = 'es';
 
   @override
   void initState() {
@@ -33,6 +35,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadNoti();
   }
 
+  @override
+  void didUpdateWidget(SettingsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isDarkMode != widget.isDarkMode) {
+      setState(() => _dark = widget.isDarkMode);
+    }
+    if (oldWidget.currentLang != widget.currentLang) {
+      setState(() => _lang = widget.currentLang);
+    }
+  }
+
   Future<void> _loadNoti() async {
     final n = await _prefs.getNotifications();
     setState(() => _noti = n);
@@ -40,42 +53,101 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _logout() async {
     await _prefs.clearAll();
-    if (!mounted) return;
-    Navigator.pop(context, true);
+    widget.onLogout();
+  }
+
+  void _showAppInfo() {
+    showAboutDialog(
+      context: context,
+      applicationName: 'InstaDAM',
+      applicationVersion: '1.0.0',
+      applicationIcon: Image.asset('assets/Logo.png', width: 50, height: 50),
+      children: [
+        const Text('Una aplicación tipo Instagram mejorada para el proyecto InstaDAM.'),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ajustes')),
+      appBar: AppBar(
+        title: const Text('Ajustes'),
+        centerTitle: true,
+      ),
       body: ListView(
         children: [
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'Cuenta',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.person_outline),
+            title: const Text('Editar perfil'),
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Funcionalidad de editar perfil próximamente')),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.badge_outlined),
+            title: const Text('Cambiar nombre de usuario'),
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Funcionalidad próximamente')),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.camera_alt_outlined),
+            title: const Text('Cambiar foto de perfil'),
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Funcionalidad próximamente')),
+              );
+            },
+          ),
+          const Divider(),
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'Preferencias',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+            ),
+          ),
           SwitchListTile(
+            secondary: const Icon(Icons.dark_mode_outlined),
             value: _dark,
             title: const Text('Tema oscuro'),
-            onChanged: (v) async {
+            onChanged: (v) {
               setState(() => _dark = v);
               widget.onThemeChanged(v);
             },
           ),
           SwitchListTile(
+            secondary: const Icon(Icons.notifications_outlined),
             value: _noti,
-            title: const Text('Notificaciones (simulación)'),
+            title: const Text('Notificaciones'),
             onChanged: (v) async {
               setState(() => _noti = v);
               await _prefs.setNotifications(v);
             },
           ),
           ListTile(
+            leading: const Icon(Icons.language_outlined),
             title: const Text('Idioma'),
-            subtitle: Text(_lang),
             trailing: DropdownButton<String>(
               value: _lang,
+              underline: const SizedBox(),
               items: const [
                 DropdownMenuItem(value: 'es', child: Text('Español')),
                 DropdownMenuItem(value: 'ca', child: Text('Català')),
               ],
-              onChanged: (v) async {
+              onChanged: (v) {
                 if (v == null) return;
                 setState(() => _lang = v);
                 widget.onLanguageChanged(v);
@@ -84,8 +156,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const Divider(),
           ListTile(
-            title: const Text('Cerrar sesión'),
-            leading: const Icon(Icons.logout),
+            leading: const Icon(Icons.info_outline),
+            title: const Text('Información de la app'),
+            onTap: _showAppInfo,
+          ),
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.red),
+            title: const Text('Cerrar sesión', style: TextStyle(color: Colors.red)),
             onTap: _logout,
           )
         ],
