@@ -69,7 +69,7 @@ class _FeedScreenState extends State<FeedScreen> {
     final created = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) => CreatePostScreen(username: widget.username),
+        builder: (_) => CreatePostScreen(username: widget.username, currentLang: widget.currentLang),
       ),
     );
 
@@ -82,7 +82,7 @@ class _FeedScreenState extends State<FeedScreen> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ProfileScreen(username: widget.username),
+        builder: (_) => ProfileScreen(username: widget.username, currentLang: widget.currentLang),
       ),
     );
 
@@ -126,39 +126,6 @@ class _FeedScreenState extends State<FeedScreen> {
               ),
             ],
           ),
-        ),
-        actions: [
-          Semantics(
-            button: true,
-            label: 'Abrir perfil de ${widget.username}',
-            hint: 'Abre la pantalla de perfil',
-            child: IconButton(
-              tooltip: 'Perfil',
-              icon: const Icon(Icons.person_outline),
-              onPressed: _goProfile,
-            ),
-          ),
-          Semantics(
-            button: true,
-            label: 'Abrir ajustes',
-            hint: 'Abre la configuración de la aplicación',
-            child: IconButton(
-              tooltip: 'Ajustes',
-              icon: const Icon(Icons.settings_outlined),
-              onPressed: _goSettings,
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: Semantics(
-        button: true,
-        label: 'Crear nueva publicación',
-        hint: 'Abre la pantalla para crear una publicación',
-        child: FloatingActionButton.extended(
-          tooltip: 'Crear publicación',
-          onPressed: _goCreatePost,
-          icon: const Icon(Icons.add),
-          label: const Text('Publicar'),
         ),
       ),
       body: _loading

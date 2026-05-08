@@ -4,6 +4,7 @@ import '../post/create_post_screen.dart';
 import '../profile/profile_screen.dart';
 import '../settings/settings_screen.dart';
 import '../search/search_screen.dart';
+import '../../services/localization_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final String username;
@@ -62,8 +63,8 @@ class _HomeScreenState extends State<HomeScreen> {
         onLogout: widget.onLogout,
       ),
       const SearchScreen(),
-      CreatePostScreen(username: widget.username),
-      ProfileScreen(username: widget.username),
+      CreatePostScreen(username: widget.username, currentLang: widget.currentLang),
+      ProfileScreen(username: widget.username, currentLang: widget.currentLang),
       SettingsScreen(
         isDarkMode: widget.isDarkMode,
         currentLang: widget.currentLang,
@@ -95,33 +96,33 @@ class _HomeScreenState extends State<HomeScreen> {
         unselectedItemColor: Colors.grey,
         showSelectedLabels: true,
         showUnselectedLabels: true,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            activeIcon: Icon(Icons.search_rounded),
-            label: 'Explorar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_box_outlined),
-            activeIcon: Icon(Icons.add_box),
-            label: 'Crear',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            activeIcon: Icon(Icons.settings),
-            label: 'Ajustes',
-          ),
-        ],
+      items: [
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.home_outlined),
+          activeIcon: const Icon(Icons.home),
+          label: LocalizationService.translate('home', widget.currentLang),
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.search),
+          activeIcon: const Icon(Icons.search_rounded),
+          label: LocalizationService.translate('search', widget.currentLang),
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.add_box_outlined),
+          activeIcon: const Icon(Icons.add_box),
+          label: LocalizationService.translate('create', widget.currentLang),
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.person_outline),
+          activeIcon: const Icon(Icons.person),
+          label: LocalizationService.translate('profile', widget.currentLang),
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.settings_outlined),
+          activeIcon: const Icon(Icons.settings),
+          label: LocalizationService.translate('settings', widget.currentLang),
+        ),
+      ],
       ),
     );
   }

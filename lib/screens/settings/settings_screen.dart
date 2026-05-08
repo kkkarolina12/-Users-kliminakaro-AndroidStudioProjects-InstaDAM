@@ -68,6 +68,75 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _editProfile() async {
+    final name = await _prefs.getProfileName('');
+    final bio = await _prefs.getProfileBio();
+    
+    final nameCtrl = TextEditingController(text: name);
+    final bioCtrl = TextEditingController(text: bio);
+
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Editar perfil'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameCtrl,
+              decoration: const InputDecoration(labelText: 'Nombre'),
+            ),
+            TextField(
+              controller: bioCtrl,
+              decoration: const InputDecoration(labelText: 'Biografía'),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: () async {
+              await _prefs.setProfile(name: nameCtrl.text.trim(), bio: bioCtrl.text.trim());
+              if (mounted) Navigator.pop(context);
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+    setState(() {});
+  }
+
+  Future<void> _changeUsername() async {
+    final current = await _prefs.getRememberedUsername() ?? '';
+    final ctrl = TextEditingController(text: current);
+    
+    final res = await showDialog<String>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Nombre de usuario'),
+        content: TextField(
+          controller: ctrl,
+          decoration: const InputDecoration(hintText: 'Nuevo nombre de usuario'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, ctrl.text.trim()),
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+
+    if (res != null && res.isNotEmpty) {
+      await _prefs.rememberUsername(res);
+      setState(() {});
+      // Note: This might require a full app refresh or passing the new username up
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,27 +156,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             leading: const Icon(Icons.person_outline),
             title: const Text('Editar perfil'),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Funcionalidad de editar perfil próximamente')),
-              );
-            },
+            onTap: _editProfile,
           ),
           ListTile(
             leading: const Icon(Icons.badge_outlined),
             title: const Text('Cambiar nombre de usuario'),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Funcionalidad próximamente')),
-              );
-            },
+            onTap: _changeUsername,
           ),
           ListTile(
             leading: const Icon(Icons.camera_alt_outlined),
             title: const Text('Cambiar foto de perfil'),
             onTap: () {
+              // Simulación de cambio de foto
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Funcionalidad próximamente')),
+                const SnackBar(content: Text('Funcionalidad de cámara no implementada en este entorno')),
               );
             },
           ),

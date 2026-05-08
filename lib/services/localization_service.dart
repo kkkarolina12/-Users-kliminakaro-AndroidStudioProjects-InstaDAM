@@ -1,0 +1,72 @@
+import 'package:flutter/material.dart';
+
+class LocalizationService {
+  static final Map<String, Map<String, String>> _translations = {
+    'es': {
+      'app_name': 'InstaDAM',
+      'home': 'Inicio',
+      'search': 'Explorar',
+      'create': 'Crear',
+      'profile': 'Perfil',
+      'settings': 'Ajustes',
+      'posts': 'Publicaciones',
+      'followers': 'Seguidores',
+      'following': 'Seguidos',
+      'edit_profile': 'Editar perfil',
+      'no_posts': 'No tienes publicaciones aún.',
+      'account': 'Cuenta',
+      'change_username': 'Cambiar nombre de usuario',
+      'change_photo': 'Cambiar foto de perfil',
+      'preferences': 'Preferencias',
+      'dark_mode': 'Tema oscuro',
+      'notifications': 'Notificaciones',
+      'language': 'Idioma',
+      'app_info': 'Información de la app',
+      'logout': 'Cerrar sesión',
+      'save': 'Guardar',
+      'cancel': 'Cancelar',
+      'name': 'Nombre',
+      'bio': 'Biografía',
+      'publish': 'Publicar',
+      'new_post': 'Nueva publicación',
+      'description': 'Descripción',
+      'no_feed_posts': 'Todavía no hay publicaciones',
+      'create_first_post': 'Crea la primera publicación para empezar.',
+    },
+    'ca': {
+      'app_name': 'InstaDAM',
+      'home': 'Inici',
+      'search': 'Explorar',
+      'create': 'Crear',
+      'profile': 'Perfil',
+      'settings': 'Ajustes',
+      'posts': 'Publicacions',
+      'followers': 'Seguidors',
+      'following': 'Seguits',
+      'edit_profile': 'Editar perfil',
+      'no_posts': 'Encara no tens publicacions.',
+      'account': 'Compte',
+      'change_username': 'Canviar nom d\'usuari',
+      'change_photo': 'Canviar foto de perfil',
+      'preferences': 'Preferències',
+      'dark_mode': 'Tema fosc',
+      'notifications': 'Notificacions',
+      'language': 'Idioma',
+      'app_info': 'Informació de l\'app',
+      'logout': 'Tancar sessió',
+      'save': 'Desar',
+      'cancel': 'Cancel·lar',
+      'name': 'Nom',
+      'bio': 'Biografia',
+      'publish': 'Publicar',
+      'new_post': 'Nova publicació',
+      'description': 'Descripció',
+      'no_feed_posts': 'Encara no hi ha publicacions',
+      'create_first_post': 'Crea la primera publicació per començar.',
+    }
+  };
+
+  static String translate(String key, String lang) {
+    return _translations[lang]?[key] ?? key;
+  }
+}

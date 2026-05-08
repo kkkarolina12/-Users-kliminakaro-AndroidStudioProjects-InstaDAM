@@ -6,13 +6,18 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../models/post_model.dart';
 import '../../services/database_service.dart';
+import '../../services/localization_service.dart';
 
 class CreatePostScreen extends StatefulWidget {
   final String username;
+  final String currentLang;
+  final VoidCallback? onPostCreated;
 
   const CreatePostScreen({
     super.key,
     required this.username,
+    required this.currentLang,
+    this.onPostCreated,
   });
 
   @override

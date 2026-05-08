@@ -7,6 +7,7 @@ class PreferencesService {
   static const _kNotifications = 'notifications';
   static const _kProfileName = 'profile_name';
   static const _kProfilePhoto = 'profile_photo';
+  static const _kProfileBio = 'profile_bio';
 
   Future<void> rememberUsername(String username) async {
     final p = await SharedPreferences.getInstance();
@@ -53,10 +54,11 @@ class PreferencesService {
     return p.getBool(_kNotifications) ?? true;
   }
 
-  Future<void> setProfile({required String name, String? photoPath}) async {
+  Future<void> setProfile({required String name, String? photoPath, String? bio}) async {
     final p = await SharedPreferences.getInstance();
     await p.setString(_kProfileName, name);
     if (photoPath != null) await p.setString(_kProfilePhoto, photoPath);
+    if (bio != null) await p.setString(_kProfileBio, bio);
   }
 
   Future<String> getProfileName(String fallback) async {
@@ -67,6 +69,11 @@ class PreferencesService {
   Future<String?> getProfilePhoto() async {
     final p = await SharedPreferences.getInstance();
     return p.getString(_kProfilePhoto);
+  }
+
+  Future<String> getProfileBio() async {
+    final p = await SharedPreferences.getInstance();
+    return p.getString(_kProfileBio) ?? 'Estudiante de DAM. Amante de la fotografía y el desarrollo móvil. 🚀';
   }
 
   Future<void> clearAll() async {
