@@ -1,10 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../models/post_model.dart';
 import '../../services/database_service.dart';
+import '../../services/localization_service.dart';
 import '../../services/preferences_service.dart';
+import '../../widgets/post_card.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String username;
@@ -23,11 +26,15 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final PreferencesService _prefs = PreferencesService();
   final DatabaseService _db = DatabaseService.instance;
+  final ImagePicker _picker = ImagePicker();
 
   String _name = '';
   String _bio = '';
+  String? _photoPath;
   int _postsCount = 0;
   List<PostModel> _myPosts = [];
+
+  String t(String key) => LocalizationService.translate(key, widget.currentLang);
 
   @override
   void initState() {
@@ -38,6 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _load() async {
     final name = await _prefs.getProfileName(widget.username);
     final bio = await _prefs.getProfileBio();
+    final photo = await _prefs.getProfilePhoto();
     final posts = await _db.getPostsByUser(widget.username);
 
     if (!mounted) return;
@@ -45,161 +53,267 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       _name = name.isEmpty ? widget.username : name;
       _bio = bio;
+      _photoPath = photo;
       _myPosts = posts;
       _postsCount = posts.length;
     });
   }
 
-  Future<void> _editName() async {
-    final ctrl = TextEditingController(text: _name);
+  Future<void> _pickProfilePhoto() async {
+    try {
+      final picked = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
+      if (picked == null) return;
 
-    final res = await showDialog<String>(
+      await _prefs.setProfile(
+        name: _name.isEmpty ? widget.username : _name,
+        bio: _bio,
+        photoPath: picked.path,
+      );
+      await _load();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(t('profile_photo_updated'))),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(t('profile_photo_error'))),
+      );
+    }
+  }
+
+  Future<void> _editProfile() async {
+    final nameCtrl = TextEditingController(text: _name);
+    final bioCtrl = TextEditingController(text: _bio);
+
+    final result = await showDialog<Map<String, String>>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Nombre de perfil'),
-        content: TextField(
-          controller: ctrl,
-          decoration: const InputDecoration(hintText: 'Tu nombre'),
-          autofocus: true,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t('edit_profile')),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameCtrl,
+                decoration: InputDecoration(labelText: t('name')),
+                autofocus: true,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: bioCtrl,
+                decoration: InputDecoration(labelText: t('bio')),
+                maxLines: 3,
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(t('cancel')),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, ctrl.text.trim()),
-            child: const Text('Guardar'),
+            onPressed: () {
+              Navigator.of(dialogContext).pop({
+                'name': nameCtrl.text.trim(),
+                'bio': bioCtrl.text.trim(),
+              });
+            },
+            child: Text(t('save')),
           ),
         ],
       ),
     );
 
-    ctrl.dispose();
+    nameCtrl.dispose();
+    bioCtrl.dispose();
 
-    if (res != null && res.isNotEmpty) {
-      await _prefs.setProfile(name: res, bio: _bio);
-      await _load();
-    }
+    if (result == null) return;
+
+    final newName = result['name']?.trim() ?? '';
+    final newBio = result['bio']?.trim() ?? '';
+
+    await _prefs.setProfile(
+      name: newName.isEmpty ? widget.username : newName,
+      bio: newBio,
+      photoPath: _photoPath,
+    );
+    await _load();
+  }
+
+  Future<void> _openPost(PostModel post) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          appBar: AppBar(title: Text(t('post'))),
+          body: ListView(
+            padding: const EdgeInsets.all(12),
+            children: [
+              PostCard(
+                post: post,
+                currentUser: widget.username,
+                onChanged: () {
+                  _load();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await _load();
+  }
+
+  ImageProvider? _profileImageProvider() {
+    final path = _photoPath;
+    if (path == null || path.isEmpty) return null;
+    final file = File(path);
+    if (!file.existsSync()) return null;
+    return FileImage(file);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final photo = _profileImageProvider();
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            widget.username,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          centerTitle: false,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          widget.username,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        body: RefreshIndicator(
-          onRefresh: _load,
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 40,
-                            backgroundColor: theme.colorScheme.primaryContainer,
-                            child: Text(
-                              widget.username.isNotEmpty
-                                  ? widget.username[0].toUpperCase()
-                                  : '?',
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.onPrimaryContainer,
+        centerTitle: false,
+      ),
+      body: RefreshIndicator(
+        onRefresh: _load,
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: _pickProfilePhoto,
+                          child: Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              CircleAvatar(
+                                radius: 40,
+                                backgroundColor: theme.colorScheme.primaryContainer,
+                                backgroundImage: photo,
+                                child: photo == null
+                                    ? Text(
+                                        widget.username.isNotEmpty
+                                            ? widget.username[0].toUpperCase()
+                                            : '?',
+                                        style: TextStyle(
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.bold,
+                                          color: theme.colorScheme.onPrimaryContainer,
+                                        ),
+                                      )
+                                    : null,
                               ),
-                            ),
+                              CircleAvatar(
+                                radius: 13,
+                                backgroundColor: theme.colorScheme.primary,
+                                child: Icon(
+                                  Icons.camera_alt,
+                                  size: 15,
+                                  color: theme.colorScheme.onPrimary,
+                                ),
+                              ),
+                            ],
                           ),
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                _buildStatColumn('Publicaciones', _postsCount.toString()),
-                                _buildStatColumn('Seguidores', '120'),
-                                _buildStatColumn('Seguidos', '150'),
-                              ],
-                            ),
+                        ),
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _buildStatColumn(t('posts'), _postsCount.toString()),
+                              _buildStatColumn(t('followers'), '120'),
+                              _buildStatColumn(t('following'), '150'),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      _name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(_bio),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: _editProfile,
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          t('edit_profile'),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _pickProfilePhoto,
+                        icon: const Icon(Icons.photo_library_outlined),
+                        label: Text(t('change_photo')),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Divider(height: 1),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            ),
+            _myPosts.isEmpty
+                ? SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.camera_alt_outlined,
+                            size: 64,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            t('no_posts'),
+                            style: const TextStyle(color: Colors.grey),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        _name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Text(_bio),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: _editName,
-                          style: OutlinedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Editar perfil',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: _SliverAppBarDelegate(
-                  TabBar(
-                    indicatorColor: theme.colorScheme.onSurface,
-                    labelColor: theme.colorScheme.onSurface,
-                    unselectedLabelColor: Colors.grey,
-                    indicatorWeight: 1,
-                    tabs: const [
-                      Tab(icon: Icon(Icons.grid_on)),
-                      Tab(icon: Icon(Icons.assignment_ind_outlined)),
-                    ],
-                  ),
-                ),
-              ),
-              _myPosts.isEmpty
-                  ? const SliverFillRemaining(
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.camera_alt_outlined,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'No tienes publicaciones aún.',
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : SliverGrid(
+                    ),
+                  )
+                : SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                    sliver: SliverGrid(
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
                         crossAxisSpacing: 2,
@@ -209,32 +323,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         (context, index) {
                           final post = _myPosts[index];
                           final hasImage = post.imagePath.isNotEmpty &&
-                              post.imagePath != 'placeholder';
+                              post.imagePath != 'placeholder' &&
+                              File(post.imagePath).existsSync();
 
                           return InkWell(
-                            onTap: () {},
-                            child: Hero(
-                              tag: 'post_${post.id}',
-                              child: hasImage
-                                  ? Image.file(
-                                      File(post.imagePath),
-                                      fit: BoxFit.cover,
-                                    )
-                                  : Container(
-                                      color: theme.colorScheme.surfaceVariant,
-                                      child: const Icon(
-                                        Icons.photo,
-                                        color: Colors.grey,
-                                      ),
+                            onTap: () => _openPost(post),
+                            child: hasImage
+                                ? Image.file(
+                                    File(post.imagePath),
+                                    fit: BoxFit.cover,
+                                  )
+                                : Container(
+                                    color: theme.colorScheme.surfaceVariant,
+                                    child: const Icon(
+                                      Icons.photo,
+                                      color: Colors.grey,
                                     ),
-                            ),
+                                  ),
                           );
                         },
                         childCount: _myPosts.length,
                       ),
                     ),
-            ],
-          ),
+                  ),
+          ],
         ),
       ),
     );
@@ -260,32 +372,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ],
     );
   }
-}
-
-class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
-  _SliverAppBarDelegate(this._tabBar);
-
-  final TabBar _tabBar;
-
-  @override
-  double get minExtent => _tabBar.preferredSize.height;
-
-  @override
-  double get maxExtent => _tabBar.preferredSize.height;
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.withOpacity(0.2)),
-        ),
-      ),
-      child: _tabBar,
-    );
-  }
-
-  @override
-  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) => false;
 }

@@ -62,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
         isDarkMode: widget.isDarkMode,
         onLogout: widget.onLogout,
       ),
-      const SearchScreen(),
+      SearchScreen(currentLang: widget.currentLang),
       CreatePostScreen(username: widget.username, currentLang: widget.currentLang),
       ProfileScreen(username: widget.username, currentLang: widget.currentLang),
       SettingsScreen(

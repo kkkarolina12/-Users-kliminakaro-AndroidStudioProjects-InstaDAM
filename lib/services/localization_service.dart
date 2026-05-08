@@ -32,6 +32,11 @@ class LocalizationService {
       'description': 'Descripción',
       'no_feed_posts': 'Todavía no hay publicaciones',
       'create_first_post': 'Crea la primera publicación para empezar.',
+      'profile_photo_updated': 'Foto de perfil actualizada.',
+      'profile_photo_error': 'No se pudo abrir la galería.',
+      'post': 'Publicación',
+      'search_hint': 'Buscar...',
+      'search_coming': 'Funcionalidad de búsqueda próximamente',
     },
     'ca': {
       'app_name': 'InstaDAM',
@@ -63,6 +68,11 @@ class LocalizationService {
       'description': 'Descripció',
       'no_feed_posts': 'Encara no hi ha publicacions',
       'create_first_post': 'Crea la primera publicació per començar.',
+      'profile_photo_updated': 'Foto de perfil actualitzada.',
+      'profile_photo_error': 'No s\'ha pogut obrir la galeria.',
+      'post': 'Publicació',
+      'search_hint': 'Buscar...',
+      'search_coming': 'Funcionalitat de cerca pròximament',
     }
   };
 

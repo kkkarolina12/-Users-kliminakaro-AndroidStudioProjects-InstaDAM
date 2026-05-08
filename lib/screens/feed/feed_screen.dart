@@ -151,13 +151,13 @@ class _FeedScreenState extends State<FeedScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Todavía no hay publicaciones',
+                  widget.currentLang == 'ca' ? 'Encara no hi ha publicacions' : 'Todavía no hay publicaciones',
                   style: theme.textTheme.titleMedium,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Crea la primera publicación para empezar.',
+                  widget.currentLang == 'ca' ? 'Crea la primera publicació per començar.' : 'Crea la primera publicación para empezar.',
                   style: theme.textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
