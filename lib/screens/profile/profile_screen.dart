@@ -7,6 +7,7 @@ import '../../models/post_model.dart';
 import '../../services/database_service.dart';
 import '../../services/localization_service.dart';
 import '../../services/preferences_service.dart';
+import '../../widgets/edit_profile_dialog.dart';
 import '../../widgets/post_card.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -34,7 +35,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int _postsCount = 0;
   List<PostModel> _myPosts = [];
 
-  String t(String key) => LocalizationService.translate(key, widget.currentLang);
+  String t(String key) =>
+      LocalizationService.translate(key, widget.currentLang);
 
   @override
   void initState() {
@@ -75,74 +77,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await _load();
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(t('profile_photo_updated'))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(t('profile_photo_updated'))));
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(t('profile_photo_error'))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(t('profile_photo_error'))));
     }
   }
 
   Future<void> _editProfile() async {
-    final nameCtrl = TextEditingController(text: _name);
-    final bioCtrl = TextEditingController(text: _bio);
-
-    final result = await showDialog<Map<String, String>>(
+    final result = await showDialog<EditProfileResult>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(t('edit_profile')),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameCtrl,
-                decoration: InputDecoration(labelText: t('name')),
-                autofocus: true,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: bioCtrl,
-                decoration: InputDecoration(labelText: t('bio')),
-                maxLines: 3,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(t('cancel')),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop({
-                'name': nameCtrl.text.trim(),
-                'bio': bioCtrl.text.trim(),
-              });
-            },
-            child: Text(t('save')),
-          ),
-        ],
+      builder: (_) => EditProfileDialog(
+        title: t('edit_profile'),
+        nameLabel: t('name'),
+        bioLabel: t('bio'),
+        cancelLabel: t('cancel'),
+        saveLabel: t('save'),
+        initialName: _name,
+        initialBio: _bio,
       ),
     );
 
-    nameCtrl.dispose();
-    bioCtrl.dispose();
+    if (!mounted || result == null) return;
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted) return;
 
-    if (result == null) return;
-
-    final newName = result['name']?.trim() ?? '';
-    final newBio = result['bio']?.trim() ?? '';
+    final newName = result.name.trim();
+    final newBio = result.bio.trim();
 
     await _prefs.setProfile(
       name: newName.isEmpty ? widget.username : newName,
       bio: newBio,
       photoPath: _photoPath,
     );
+    if (!mounted) return;
     await _load();
   }
 
@@ -210,7 +182,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             children: [
                               CircleAvatar(
                                 radius: 40,
-                                backgroundColor: theme.colorScheme.primaryContainer,
+                                backgroundColor:
+                                    theme.colorScheme.primaryContainer,
                                 backgroundImage: photo,
                                 child: photo == null
                                     ? Text(
@@ -220,7 +193,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         style: TextStyle(
                                           fontSize: 32,
                                           fontWeight: FontWeight.bold,
-                                          color: theme.colorScheme.onPrimaryContainer,
+                                          color: theme
+                                              .colorScheme
+                                              .onPrimaryContainer,
                                         ),
                                       )
                                     : null,
@@ -241,7 +216,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              _buildStatColumn(t('posts'), _postsCount.toString()),
+                              _buildStatColumn(
+                                t('posts'),
+                                _postsCount.toString(),
+                              ),
                               _buildStatColumn(t('followers'), '120'),
                               _buildStatColumn(t('following'), '150'),
                             ],
@@ -314,36 +292,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 : SliverPadding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                     sliver: SliverGrid(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 2,
-                        mainAxisSpacing: 2,
-                      ),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final post = _myPosts[index];
-                          final hasImage = post.imagePath.isNotEmpty &&
-                              post.imagePath != 'placeholder' &&
-                              File(post.imagePath).existsSync();
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 2,
+                            mainAxisSpacing: 2,
+                          ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final post = _myPosts[index];
+                        final hasImage =
+                            post.imagePath.isNotEmpty &&
+                            post.imagePath != 'placeholder' &&
+                            File(post.imagePath).existsSync();
 
-                          return InkWell(
-                            onTap: () => _openPost(post),
-                            child: hasImage
-                                ? Image.file(
-                                    File(post.imagePath),
-                                    fit: BoxFit.cover,
-                                  )
-                                : Container(
-                                    color: theme.colorScheme.surfaceVariant,
-                                    child: const Icon(
-                                      Icons.photo,
-                                      color: Colors.grey,
-                                    ),
+                        return InkWell(
+                          onTap: () => _openPost(post),
+                          child: hasImage
+                              ? Image.file(
+                                  File(post.imagePath),
+                                  fit: BoxFit.cover,
+                                )
+                              : Container(
+                                  color: theme.colorScheme.surfaceVariant,
+                                  child: const Icon(
+                                    Icons.photo,
+                                    color: Colors.grey,
                                   ),
-                          );
-                        },
-                        childCount: _myPosts.length,
-                      ),
+                                ),
+                        );
+                      }, childCount: _myPosts.length),
                     ),
                   ),
           ],
