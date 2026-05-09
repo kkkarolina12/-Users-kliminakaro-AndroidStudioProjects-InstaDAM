@@ -5,7 +5,7 @@ import '../../services/database_service.dart';
 import '../../widgets/comment_tile.dart';
 
 class CommentsScreen extends StatefulWidget {
-  final int postId;
+  final String postId;
   final String currentUser;
 
   const CommentsScreen({
@@ -50,10 +50,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 2),
-        ),
+        SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
       );
 
     SemanticsService.announce(
@@ -87,12 +84,14 @@ class _CommentsScreenState extends State<CommentsScreen> {
     _showAccessibleMessage('Comentario añadido correctamente');
   }
 
-  Future<void> _deleteComment(int commentId) async {
+  Future<void> _deleteComment(String commentId) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Borrar comentario'),
-        content: const Text('¿Estás seguro de que quieres borrar este comentario?'),
+        content: const Text(
+          '¿Estás seguro de que quieres borrar este comentario?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -111,7 +110,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     );
 
     if (confirmed == true) {
-      await _db.deleteComment(commentId);
+      await _db.deleteComment(widget.postId, commentId);
       await _loadComments();
       if (!mounted) return;
       _showAccessibleMessage('Comentario borrado');
@@ -136,39 +135,37 @@ class _CommentsScreenState extends State<CommentsScreen> {
       appBar: AppBar(
         title: Semantics(
           header: true,
-          child: ExcludeSemantics(
-            child: Text('Comentarios ($commentsCount)'),
-          ),
+          child: ExcludeSemantics(child: Text('Comentarios ($commentsCount)')),
         ),
       ),
       body: Column(
         children: [
           Expanded(
             child: _loading
-                ? const Center(
-              child: CircularProgressIndicator(),
-            )
+                ? const Center(child: CircularProgressIndicator())
                 : _comments.isEmpty
                 ? Center(
-              child: Semantics(
-                liveRegion: true,
-                child: const Text('Todavía no hay comentarios'),
-              ),
-            )
+                    child: Semantics(
+                      liveRegion: true,
+                      child: const Text('Todavía no hay comentarios'),
+                    ),
+                  )
                 : ListView.builder(
-              padding: const EdgeInsets.only(top: 8, bottom: 8),
-              itemCount: _comments.length,
-              itemBuilder: (context, index) {
-                final c = _comments[index];
-                return CommentTile(
-                  username: c.user,
-                  text: c.text,
-                  createdAt: _parseDate(c.date),
-                  isOwner: c.user == widget.currentUser,
-                  onDelete: c.id != null ? () => _deleteComment(c.id!) : null,
-                );
-              },
-            ),
+                    padding: const EdgeInsets.only(top: 8, bottom: 8),
+                    itemCount: _comments.length,
+                    itemBuilder: (context, index) {
+                      final c = _comments[index];
+                      return CommentTile(
+                        username: c.user,
+                        text: c.text,
+                        createdAt: _parseDate(c.date),
+                        isOwner: c.user == widget.currentUser,
+                        onDelete: c.id != null
+                            ? () => _deleteComment(c.id!)
+                            : null,
+                      );
+                    },
+                  ),
           ),
           SafeArea(
             top: false,
@@ -195,12 +192,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
                       hint: 'Doble toque para publicar el comentario',
                       child: FilledButton.icon(
                         onPressed: _addComment,
-                        icon: const ExcludeSemantics(
-                          child: Icon(Icons.send),
-                        ),
-                        label: const ExcludeSemantics(
-                          child: Text('Enviar'),
-                        ),
+                        icon: const ExcludeSemantics(child: Icon(Icons.send)),
+                        label: const ExcludeSemantics(child: Text('Enviar')),
                       ),
                     ),
                   ),

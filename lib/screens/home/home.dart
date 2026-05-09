@@ -72,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       ProfileScreen(username: widget.username, currentLang: widget.currentLang),
       SettingsScreen(
+        username: widget.username,
         isDarkMode: widget.isDarkMode,
         currentLang: widget.currentLang,
         onThemeChanged: widget.onThemeChanged,
@@ -97,14 +98,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: colorScheme.primary,
+        unselectedItemColor: colorScheme.onSurfaceVariant,
         showSelectedLabels: true,
         showUnselectedLabels: true,
         items: [

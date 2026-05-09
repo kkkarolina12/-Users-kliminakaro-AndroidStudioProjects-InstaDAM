@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "533981334672",
+    "project_id": "instadam-f5a19",
+    "storage_bucket": "instadam-f5a19.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:533981334672:android:0d125434b1645b4d501c15",
+        "android_client_info": {
+          "package_name": "com.instadam.instadam"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4CKXlkL4r6e3diBLVx0LXqPBb6uz5KwM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

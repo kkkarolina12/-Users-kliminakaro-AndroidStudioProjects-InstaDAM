@@ -6,10 +6,7 @@ import '../../services/preferences_service.dart';
 class AuthScreen extends StatefulWidget {
   final void Function(String username) onAuthenticated;
 
-  const AuthScreen({
-    super.key,
-    required this.onAuthenticated,
-  });
+  const AuthScreen({super.key, required this.onAuthenticated});
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -60,9 +57,9 @@ class _AuthScreenState extends State<AuthScreen> {
                               : Colors.grey,
                           side: _showLogin
                               ? const BorderSide(
-                            color: Color(0xFF1F3864),
-                            width: 2,
-                          )
+                                  color: Color(0xFF1F3864),
+                                  width: 2,
+                                )
                               : BorderSide.none,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -95,9 +92,9 @@ class _AuthScreenState extends State<AuthScreen> {
                               : Colors.grey,
                           side: !_showLogin
                               ? const BorderSide(
-                            color: Color(0xFF1F3864),
-                            width: 2,
-                          )
+                                  color: Color(0xFF1F3864),
+                                  width: 2,
+                                )
                               : BorderSide.none,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -121,13 +118,13 @@ class _AuthScreenState extends State<AuthScreen> {
                 duration: const Duration(milliseconds: 300),
                 child: _showLogin
                     ? LoginForm(
-                  key: const ValueKey('login'),
-                  onAuthenticated: widget.onAuthenticated,
-                )
+                        key: const ValueKey('login'),
+                        onAuthenticated: widget.onAuthenticated,
+                      )
                     : RegisterForm(
-                  key: const ValueKey('register'),
-                  onAuthenticated: widget.onAuthenticated,
-                ),
+                        key: const ValueKey('register'),
+                        onAuthenticated: widget.onAuthenticated,
+                      ),
               ),
             ],
           ),
@@ -173,8 +170,9 @@ class LabeledField extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color:
-            errorText != null ? Colors.red[700] : const Color(0xFF1F3864),
+            color: errorText != null
+                ? Colors.red[700]
+                : const Color(0xFF1F3864),
           ),
         ),
         const SizedBox(height: 6),
@@ -202,20 +200,20 @@ class LabeledField extends StatelessWidget {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide(
-                color:
-                errorText != null ? Colors.red : const Color(0xFFCCCCCC),
+                color: errorText != null ? Colors.red : const Color(0xFFCCCCCC),
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide(
-                color:
-                errorText != null ? Colors.red : const Color(0xFF1F3864),
+                color: errorText != null ? Colors.red : const Color(0xFF1F3864),
                 width: 2,
               ),
             ),
-            contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
           ),
         ),
       ],
@@ -226,10 +224,7 @@ class LabeledField extends StatelessWidget {
 class LoginForm extends StatefulWidget {
   final void Function(String username) onAuthenticated;
 
-  const LoginForm({
-    super.key,
-    required this.onAuthenticated,
-  });
+  const LoginForm({super.key, required this.onAuthenticated});
 
   @override
   State<LoginForm> createState() => _LoginFormState();
@@ -268,7 +263,8 @@ class _LoginFormState extends State<LoginForm> {
 
   String? _validatePass(String pass) {
     if (pass.isEmpty) return 'La contraseña es obligatoria';
-    if (pass.length < 6) return 'La contraseña debe tener al menos 6 caracteres';
+    if (pass.length < 6)
+      return 'La contraseña debe tener al menos 6 caracteres';
     return null;
   }
 
@@ -306,13 +302,13 @@ class _LoginFormState extends State<LoginForm> {
     }
 
     if (_rememberUser) {
-      await _prefs.rememberUsername(username);
+      await _prefs.rememberUsername(user.username);
     } else {
       await _prefs.clearRememberedUsername();
     }
 
     setState(() => _isLoading = false);
-    widget.onAuthenticated(username);
+    widget.onAuthenticated(user.username);
   }
 
   @override
@@ -379,33 +375,33 @@ class _LoginFormState extends State<LoginForm> {
             height: _globalError != null ? null : 0,
             child: _globalError != null
                 ? Container(
-              padding: const EdgeInsets.all(12),
-              margin: const EdgeInsets.only(bottom: 8),
-              decoration: BoxDecoration(
-                color: Colors.red[50],
-                border: Border.all(color: Colors.red),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    color: Colors.red,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _globalError!,
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontSize: 14,
-                      ),
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      border: Border.all(color: Colors.red),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  ),
-                ],
-              ),
-            )
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.red,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _globalError!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
                 : const SizedBox.shrink(),
           ),
         ),
@@ -425,20 +421,17 @@ class _LoginFormState extends State<LoginForm> {
             ),
             child: _isLoading
                 ? const SizedBox(
-              height: 24,
-              width: 24,
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 2.5,
-              ),
-            )
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2.5,
+                    ),
+                  )
                 : const Text(
-              'Iniciar sesión',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+                    'Iniciar sesión',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
           ),
         ),
         const SizedBox(height: 16),
@@ -450,10 +443,7 @@ class _LoginFormState extends State<LoginForm> {
 class RegisterForm extends StatefulWidget {
   final void Function(String username) onAuthenticated;
 
-  const RegisterForm({
-    super.key,
-    required this.onAuthenticated,
-  });
+  const RegisterForm({super.key, required this.onAuthenticated});
 
   @override
   State<RegisterForm> createState() => _RegisterFormState();
@@ -523,7 +513,9 @@ class _RegisterFormState extends State<RegisterForm> {
       return;
     }
     if (!_acceptTerms) {
-      setState(() => _globalError = 'Debes aceptar los términos y condiciones.');
+      setState(
+        () => _globalError = 'Debes aceptar los términos y condiciones.',
+      );
       return;
     }
 
@@ -545,9 +537,7 @@ class _RegisterFormState extends State<RegisterForm> {
         return;
       }
 
-      await _db.registerUser(
-        UserModel(username: username, password: password),
-      );
+      await _db.registerUser(UserModel(username: username, password: password));
 
       await _prefs.rememberUsername(username);
 
@@ -563,7 +553,10 @@ class _RegisterFormState extends State<RegisterForm> {
       if (!mounted) return;
 
       final msg = e.toString().toLowerCase();
-      final isDuplicate = msg.contains('unique') || msg.contains('duplicate') || msg.contains('constraint');
+      final isDuplicate =
+          msg.contains('unique') ||
+          msg.contains('duplicate') ||
+          msg.contains('constraint');
 
       setState(() {
         _isLoading = false;
@@ -627,9 +620,8 @@ class _RegisterFormState extends State<RegisterForm> {
               icon: Icon(
                 _obscureConfirm ? Icons.visibility : Icons.visibility_off,
               ),
-              onPressed: () => setState(
-                    () => _obscureConfirm = !_obscureConfirm,
-              ),
+              onPressed: () =>
+                  setState(() => _obscureConfirm = !_obscureConfirm),
             ),
           ),
         ),
@@ -642,8 +634,7 @@ class _RegisterFormState extends State<RegisterForm> {
               child: Checkbox(
                 value: _acceptTerms,
                 activeColor: const Color(0xFF1F3864),
-                onChanged: (val) =>
-                    setState(() => _acceptTerms = val ?? false),
+                onChanged: (val) => setState(() => _acceptTerms = val ?? false),
               ),
             ),
             const Expanded(
@@ -735,20 +726,17 @@ class _RegisterFormState extends State<RegisterForm> {
             ),
             child: _isLoading
                 ? const SizedBox(
-              height: 24,
-              width: 24,
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 2.5,
-              ),
-            )
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2.5,
+                    ),
+                  )
                 : const Text(
-              'Crear cuenta',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+                    'Crear cuenta',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
           ),
         ),
         const SizedBox(height: 16),

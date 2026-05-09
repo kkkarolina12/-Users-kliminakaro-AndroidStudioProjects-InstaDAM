@@ -26,7 +26,7 @@ class CommentTile extends StatelessWidget {
       child: Semantics(
         readOnly: true,
         label:
-        'Comentario de $username. Texto: $text. Fecha ${_formatDate(createdAt)}',
+            'Comentario de $username. Texto: $text. Fecha ${_formatDate(createdAt)}',
         child: ListTile(
           dense: true,
           onLongPress: onLongPress,
@@ -61,7 +61,7 @@ class CommentTile extends StatelessWidget {
                 child: Text(
                   _formatDate(createdAt),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.textTheme.bodySmall?.color?.withOpacity(0.65),
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -75,7 +75,11 @@ class CommentTile extends StatelessWidget {
           ),
           trailing: isOwner && onDelete != null
               ? IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 20, color: Colors.red),
+                  icon: Icon(
+                    Icons.delete_outline,
+                    size: 20,
+                    color: theme.colorScheme.error,
+                  ),
                   onPressed: onDelete,
                 )
               : null,

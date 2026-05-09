@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import '../../models/post_model.dart';
 import '../../services/database_service.dart';
 import '../../services/localization_service.dart';
-import '../../services/preferences_service.dart';
 import '../../widgets/edit_profile_dialog.dart';
 import '../../widgets/post_card.dart';
 
@@ -25,7 +24,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final PreferencesService _prefs = PreferencesService();
   final DatabaseService _db = DatabaseService.instance;
   final ImagePicker _picker = ImagePicker();
 
@@ -45,17 +43,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _load() async {
-    final name = await _prefs.getProfileName(widget.username);
-    final bio = await _prefs.getProfileBio();
-    final photo = await _prefs.getProfilePhoto();
+    final profile = await _db.getUserProfile(widget.username);
     final posts = await _db.getPostsByUser(widget.username);
 
     if (!mounted) return;
 
     setState(() {
-      _name = name.isEmpty ? widget.username : name;
-      _bio = bio;
-      _photoPath = photo;
+      _name = profile.name.isEmpty ? widget.username : profile.name;
+      _bio = profile.bio;
+      _photoPath = profile.photoUrl;
       _myPosts = posts;
       _postsCount = posts.length;
     });
@@ -69,7 +65,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
       if (picked == null) return;
 
-      await _prefs.setProfile(
+      await _db.updateUserProfile(
+        username: widget.username,
         name: _name.isEmpty ? widget.username : _name,
         bio: _bio,
         photoPath: picked.path,
@@ -109,7 +106,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final newName = result.name.trim();
     final newBio = result.bio.trim();
 
-    await _prefs.setProfile(
+    await _db.updateUserProfile(
+      username: widget.username,
       name: newName.isEmpty ? widget.username : newName,
       bio: newBio,
       photoPath: _photoPath,
@@ -145,9 +143,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   ImageProvider? _profileImageProvider() {
     final path = _photoPath;
     if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return NetworkImage(path);
+    }
     final file = File(path);
     if (!file.existsSync()) return null;
     return FileImage(file);
+  }
+
+  bool _isRemoteImage(String value) {
+    return value.startsWith('http://') || value.startsWith('https://');
   }
 
   @override
@@ -217,11 +222,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               _buildStatColumn(
+                                context,
                                 t('posts'),
                                 _postsCount.toString(),
                               ),
-                              _buildStatColumn(t('followers'), '120'),
-                              _buildStatColumn(t('following'), '150'),
+                              _buildStatColumn(context, t('followers'), '120'),
+                              _buildStatColumn(context, t('following'), '150'),
                             ],
                           ),
                         ),
@@ -275,15 +281,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.camera_alt_outlined,
                             size: 64,
-                            color: Colors.grey,
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                           const SizedBox(height: 16),
                           Text(
                             t('no_posts'),
-                            style: const TextStyle(color: Colors.grey),
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ],
                       ),
@@ -303,20 +311,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         final hasImage =
                             post.imagePath.isNotEmpty &&
                             post.imagePath != 'placeholder' &&
-                            File(post.imagePath).existsSync();
+                            (_isRemoteImage(post.imagePath) ||
+                                File(post.imagePath).existsSync());
 
                         return InkWell(
                           onTap: () => _openPost(post),
                           child: hasImage
-                              ? Image.file(
-                                  File(post.imagePath),
-                                  fit: BoxFit.cover,
-                                )
+                              ? _isRemoteImage(post.imagePath)
+                                    ? Image.network(
+                                        post.imagePath,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Image.file(
+                                        File(post.imagePath),
+                                        fit: BoxFit.cover,
+                                      )
                               : Container(
-                                  color: theme.colorScheme.surfaceVariant,
-                                  child: const Icon(
+                                  color:
+                                      theme.colorScheme.surfaceContainerHighest,
+                                  child: Icon(
                                     Icons.photo,
-                                    color: Colors.grey,
+                                    color: theme.colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                         );
@@ -329,21 +344,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildStatColumn(String label, String value) {
+  Widget _buildStatColumn(BuildContext context, String label, String value) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           value,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface,
+          ),
         ),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w400,
-            color: Colors.grey,
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
       ],

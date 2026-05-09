@@ -69,7 +69,10 @@ class _FeedScreenState extends State<FeedScreen> {
     final created = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) => CreatePostScreen(username: widget.username, currentLang: widget.currentLang),
+        builder: (_) => CreatePostScreen(
+          username: widget.username,
+          currentLang: widget.currentLang,
+        ),
       ),
     );
 
@@ -82,7 +85,10 @@ class _FeedScreenState extends State<FeedScreen> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ProfileScreen(username: widget.username, currentLang: widget.currentLang),
+        builder: (_) => ProfileScreen(
+          username: widget.username,
+          currentLang: widget.currentLang,
+        ),
       ),
     );
 
@@ -94,6 +100,7 @@ class _FeedScreenState extends State<FeedScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => SettingsScreen(
+          username: widget.username,
           isDarkMode: widget.isDarkMode,
           currentLang: widget.currentLang,
           onThemeChanged: widget.onThemeChanged,
@@ -121,7 +128,7 @@ class _FeedScreenState extends State<FeedScreen> {
               Text(
                 '@${widget.username}',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onPrimary.withOpacity(0.85),
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -130,65 +137,69 @@ class _FeedScreenState extends State<FeedScreen> {
       ),
       body: _loading
           ? Center(
-        child: Semantics(
-          label: 'Cargando publicaciones',
-          child: const CircularProgressIndicator(),
-        ),
-      )
+              child: Semantics(
+                label: 'Cargando publicaciones',
+                child: const CircularProgressIndicator(),
+              ),
+            )
           : _posts.isEmpty
           ? Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Semantics(
-            label: 'No hay publicaciones en el feed',
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.photo_library_outlined,
-                  size: 56,
-                  color: theme.colorScheme.primary,
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Semantics(
+                  label: 'No hay publicaciones en el feed',
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.photo_library_outlined,
+                        size: 56,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        widget.currentLang == 'ca'
+                            ? 'Encara no hi ha publicacions'
+                            : 'Todavía no hay publicaciones',
+                        style: theme.textTheme.titleMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        widget.currentLang == 'ca'
+                            ? 'Crea la primera publicació per començar.'
+                            : 'Crea la primera publicación para empezar.',
+                        style: theme.textTheme.bodyMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  widget.currentLang == 'ca' ? 'Encara no hi ha publicacions' : 'Todavía no hay publicaciones',
-                  style: theme.textTheme.titleMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  widget.currentLang == 'ca' ? 'Crea la primera publicació per començar.' : 'Crea la primera publicación para empezar.',
-                  style: theme.textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      )
+              ),
+            )
           : Semantics(
-        container: true,
-        label:
-        'Feed principal con ${_posts.length} publicaciones. Desliza hacia arriba o abajo para navegar.',
-        child: RefreshIndicator(
-          onRefresh: _loadPosts,
-          child: ListView.builder(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 90),
-            itemCount: _posts.length,
-            itemBuilder: (_, i) {
-              return Semantics(
-                sortKey: OrdinalSortKey(i.toDouble()),
-                child: PostCard(
-                  post: _posts[i],
-                  currentUser: widget.username,
-                  onChanged: _loadPosts,
+              container: true,
+              label:
+                  'Feed principal con ${_posts.length} publicaciones. Desliza hacia arriba o abajo para navegar.',
+              child: RefreshIndicator(
+                onRefresh: _loadPosts,
+                child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 90),
+                  itemCount: _posts.length,
+                  itemBuilder: (_, i) {
+                    return Semantics(
+                      sortKey: OrdinalSortKey(i.toDouble()),
+                      child: PostCard(
+                        post: _posts[i],
+                        currentUser: widget.username,
+                        onChanged: _loadPosts,
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-        ),
-      ),
+              ),
+            ),
     );
   }
 }

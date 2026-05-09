@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class PostModel {
-  final int? id;
+  final String? id;
   final String user;
-  final String imagePath; // puede ser "placeholder"
+  final String imagePath; // puede ser "placeholder" o una URL de Firebase
   final String description;
   final String date; // ISO string
   final int likes; // total likes
@@ -25,11 +27,25 @@ class PostModel {
   };
 
   factory PostModel.fromMap(Map<String, Object?> map) => PostModel(
-    id: map['id'] as int?,
+    id: map['id']?.toString(),
     user: map['user'] as String,
     imagePath: map['imagePath'] as String,
     description: map['description'] as String,
     date: map['date'] as String,
-    likes: (map['likes'] as int?) ?? 0,
+    likes: (map['likes'] as num?)?.toInt() ?? 0,
   );
+
+  factory PostModel.fromFirestore(
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
+    final data = doc.data();
+    return PostModel(
+      id: doc.id,
+      user: data['user'] as String? ?? '',
+      imagePath: data['imagePath'] as String? ?? 'placeholder',
+      description: data['description'] as String? ?? '',
+      date: data['date'] as String? ?? '',
+      likes: (data['likes'] as num?)?.toInt() ?? 0,
+    );
+  }
 }

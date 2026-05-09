@@ -1,20 +1,12 @@
 class UserModel {
-  final int? id;
+  final Object? id;
   final String username;
   final String password;
 
-  UserModel({
-    this.id,
-    required this.username,
-    required this.password,
-  });
+  UserModel({this.id, required this.username, required this.password});
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'username': username,
-      'password': password,
-    };
+    return {'id': id, 'username': username, 'password': password};
   }
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
@@ -24,4 +16,18 @@ class UserModel {
       password: map['password'],
     );
   }
+}
+
+class UserProfile {
+  final String username;
+  final String name;
+  final String bio;
+  final String photoUrl;
+
+  const UserProfile({
+    required this.username,
+    required this.name,
+    required this.bio,
+    required this.photoUrl,
+  });
 }

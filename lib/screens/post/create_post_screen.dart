@@ -180,6 +180,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   Widget _buildImageSelector() {
     final hasImage = _selectedImage != null;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Semantics(
       button: true,
@@ -196,8 +197,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           constraints: const BoxConstraints(minHeight: 180),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.black12),
-            color: Colors.grey.shade100,
+            border: Border.all(color: colorScheme.outlineVariant),
+            color: colorScheme.surfaceContainerHighest,
           ),
           child: hasImage
               ? ClipRRect(
@@ -213,16 +214,22 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         height: 220,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             ExcludeSemantics(
                               child: Icon(
                                 Icons.broken_image_outlined,
                                 size: 56,
+                                color: colorScheme.onSurfaceVariant,
                               ),
                             ),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             ExcludeSemantics(
-                              child: Text('No se pudo mostrar la imagen'),
+                              child: Text(
+                                'No se pudo mostrar la imagen',
+                                style: TextStyle(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -234,15 +241,21 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   height: 180,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       ExcludeSemantics(
                         child: Icon(
                           Icons.add_photo_alternate_outlined,
                           size: 56,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      SizedBox(height: 10),
-                      ExcludeSemantics(child: Text('Seleccionar imagen')),
+                      const SizedBox(height: 10),
+                      ExcludeSemantics(
+                        child: Text(
+                          'Seleccionar imagen',
+                          style: TextStyle(color: colorScheme.onSurfaceVariant),
+                        ),
+                      ),
                     ],
                   ),
                 ),

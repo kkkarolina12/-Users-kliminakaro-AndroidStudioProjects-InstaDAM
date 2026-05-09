@@ -38,7 +38,7 @@ class _PostCardState extends State<PostCard> {
 
   Future<void> _loadState() async {
     if (widget.post.id == null) return;
-    
+
     final liked = await _db.isLikedByUser(
       postId: widget.post.id!,
       username: widget.currentUser,
@@ -54,10 +54,7 @@ class _PostCardState extends State<PostCard> {
   Future<void> _toggleLike() async {
     if (_toggling || widget.post.id == null) return;
     setState(() => _toggling = true);
-    await _db.toggleLike(
-      postId: widget.post.id!,
-      username: widget.currentUser,
-    );
+    await _db.toggleLike(postId: widget.post.id!, username: widget.currentUser);
     await _loadState();
     setState(() => _toggling = false);
     widget.onChanged();
@@ -119,7 +116,9 @@ class _PostCardState extends State<PostCard> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Borrar publicación'),
-        content: const Text('¿Estás seguro de que quieres borrar esta publicación? Esta acción no se puede deshacer.'),
+        content: const Text(
+          '¿Estás seguro de que quieres borrar esta publicación? Esta acción no se puede deshacer.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -127,8 +126,8 @@ class _PostCardState extends State<PostCard> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
             ),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Borrar'),
@@ -148,6 +147,44 @@ class _PostCardState extends State<PostCard> {
     if (dt == null) return iso;
     String two(int n) => n.toString().padLeft(2, '0');
     return '${two(dt.day)}/${two(dt.month)}/${dt.year} ${two(dt.hour)}:${two(dt.minute)}';
+  }
+
+  bool _isRemoteImage(String value) {
+    return value.startsWith('http://') || value.startsWith('https://');
+  }
+
+  Widget _buildImageError(ThemeData theme) {
+    return Container(
+      height: 140,
+      color: theme.colorScheme.surfaceContainerHighest,
+      child: Center(
+        child: Icon(
+          Icons.broken_image_outlined,
+          size: 48,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPostImage(String imagePath, ThemeData theme) {
+    if (_isRemoteImage(imagePath)) {
+      return Image.network(
+        imagePath,
+        width: double.infinity,
+        height: 300,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildImageError(theme),
+      );
+    }
+
+    return Image.file(
+      File(imagePath),
+      width: double.infinity,
+      height: 300,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => _buildImageError(theme),
+    );
   }
 
   @override
@@ -182,8 +219,9 @@ class _PostCardState extends State<PostCard> {
                     children: [
                       Text(
                         '@${post.user}',
-                        style: theme.textTheme.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.w700),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       Text(
                         _formatDate(post.date),
@@ -212,11 +250,17 @@ class _PostCardState extends State<PostCard> {
                           visualDensity: VisualDensity.compact,
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'delete',
                         child: ListTile(
-                          leading: Icon(Icons.delete, color: Colors.red),
-                          title: Text('Borrar', style: TextStyle(color: Colors.red)),
+                          leading: Icon(
+                            Icons.delete,
+                            color: theme.colorScheme.error,
+                          ),
+                          title: Text(
+                            'Borrar',
+                            style: TextStyle(color: theme.colorScheme.error),
+                          ),
                           contentPadding: EdgeInsets.zero,
                           visualDensity: VisualDensity.compact,
                         ),
@@ -230,29 +274,14 @@ class _PostCardState extends State<PostCard> {
           // Image
           if (hasImage)
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.zero),
-              child: Image.file(
-                File(post.imagePath),
-                width: double.infinity,
-                height: 300,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  height: 140,
-                  color: theme.colorScheme.surfaceVariant,
-                  child: const Center(
-                      child: Icon(Icons.broken_image_outlined, size: 48)),
-                ),
-              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.zero),
+              child: _buildPostImage(post.imagePath, theme),
             ),
 
           // Description
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
-            child: Text(
-              post.description,
-              style: theme.textTheme.bodyMedium,
-            ),
+            child: Text(post.description, style: theme.textTheme.bodyMedium),
           ),
 
           // Likes count
@@ -260,8 +289,9 @@ class _PostCardState extends State<PostCard> {
             padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Text(
               '${post.likes} me gusta',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
 
@@ -289,9 +319,11 @@ class _PostCardState extends State<PostCard> {
                     child: OutlinedButton.icon(
                       onPressed: _openComments,
                       icon: const ExcludeSemantics(
-                          child: Icon(Icons.comment_outlined)),
+                        child: Icon(Icons.comment_outlined),
+                      ),
                       label: ExcludeSemantics(
-                          child: Text('$_commentsCount comentarios')),
+                        child: Text('$_commentsCount comentarios'),
+                      ),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size.fromHeight(46),
                         shape: RoundedRectangleBorder(

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../services/database_service.dart';
 import '../../services/localization_service.dart';
 import '../../services/preferences_service.dart';
+import '../../widgets/edit_profile_dialog.dart';
 
 class SettingsScreen extends StatefulWidget {
+  final String username;
   final bool isDarkMode;
   final String currentLang;
   final void Function(bool darkMode) onThemeChanged;
@@ -13,6 +16,7 @@ class SettingsScreen extends StatefulWidget {
 
   const SettingsScreen({
     super.key,
+    required this.username,
     required this.isDarkMode,
     required this.currentLang,
     required this.onThemeChanged,
@@ -26,6 +30,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final _prefs = PreferencesService();
+  final _db = DatabaseService.instance;
   final _picker = ImagePicker();
   late bool _dark;
   late String _lang;
@@ -70,64 +75,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
       applicationVersion: '1.0.0',
       applicationIcon: Image.asset('assets/Logo.png', width: 50, height: 50),
       children: const [
-        Text('Una aplicación tipo Instagram mejorada para el proyecto InstaDAM.'),
+        Text(
+          'Una aplicación tipo Instagram mejorada para el proyecto InstaDAM.',
+        ),
       ],
     );
   }
 
   Future<void> _editProfile() async {
-    final name = await _prefs.getProfileName('');
-    final bio = await _prefs.getProfileBio();
+    final profile = await _db.getUserProfile(widget.username);
+    if (!mounted) return;
 
-    final nameCtrl = TextEditingController(text: name);
-    final bioCtrl = TextEditingController(text: bio);
-
-    final result = await showDialog<Map<String, String>>(
+    final result = await showDialog<EditProfileResult>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(t('edit_profile')),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameCtrl,
-                decoration: InputDecoration(labelText: t('name')),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: bioCtrl,
-                decoration: InputDecoration(labelText: t('bio')),
-                maxLines: 3,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(t('cancel')),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop({
-                'name': nameCtrl.text.trim(),
-                'bio': bioCtrl.text.trim(),
-              });
-            },
-            child: Text(t('save')),
-          ),
-        ],
+      builder: (_) => EditProfileDialog(
+        title: t('edit_profile'),
+        nameLabel: t('name'),
+        bioLabel: t('bio'),
+        cancelLabel: t('cancel'),
+        saveLabel: t('save'),
+        initialName: profile.name,
+        initialBio: profile.bio,
       ),
     );
 
-    nameCtrl.dispose();
-    bioCtrl.dispose();
-
-    if (result == null) return;
-    await _prefs.setProfile(
-      name: result['name']?.trim() ?? '',
-      bio: result['bio']?.trim() ?? '',
+    if (!mounted || result == null) return;
+    await _db.updateUserProfile(
+      username: widget.username,
+      name: result.name.trim(),
+      bio: result.bio.trim(),
     );
     if (!mounted) return;
     setState(() {});
@@ -141,19 +117,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
       if (picked == null) return;
 
-      final name = await _prefs.getProfileName('');
-      final bio = await _prefs.getProfileBio();
-      await _prefs.setProfile(name: name, bio: bio, photoPath: picked.path);
+      final profile = await _db.getUserProfile(widget.username);
+      await _db.updateUserProfile(
+        username: widget.username,
+        name: profile.name,
+        bio: profile.bio,
+        photoPath: picked.path,
+      );
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(t('profile_photo_updated'))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(t('profile_photo_updated'))));
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(t('profile_photo_error'))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(t('profile_photo_error'))));
     }
   }
 
@@ -171,18 +151,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(t('settings')),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text(t('settings')), centerTitle: true),
       body: ListView(
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
               t('account'),
-              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.primary,
+              ),
             ),
           ),
           ListTile(
@@ -200,7 +182,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: const EdgeInsets.all(16.0),
             child: Text(
               t('preferences'),
-              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.primary,
+              ),
             ),
           ),
           SwitchListTile(
@@ -241,8 +226,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: _showAppInfo,
           ),
           ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red),
-            title: Text(t('logout'), style: const TextStyle(color: Colors.red)),
+            leading: Icon(Icons.logout, color: colorScheme.error),
+            title: Text(
+              t('logout'),
+              style: TextStyle(color: colorScheme.error),
+            ),
             onTap: _logout,
           ),
         ],
