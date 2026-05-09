@@ -113,7 +113,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final picked = await _picker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 85,
+        maxWidth: 500,
+        imageQuality: 60,
       );
       if (picked == null) return;
 

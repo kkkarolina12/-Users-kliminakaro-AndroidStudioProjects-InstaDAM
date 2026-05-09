@@ -46,7 +46,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     try {
       final XFile? picked = await _picker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 85,
+        maxWidth: 900,
+        imageQuality: 55,
       );
 
       if (picked == null) {

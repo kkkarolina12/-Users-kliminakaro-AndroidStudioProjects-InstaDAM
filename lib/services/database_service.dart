@@ -1,7 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 
 import '../models/comment_model.dart';
 import '../models/post_model.dart';
@@ -15,7 +15,6 @@ class DatabaseService {
       'Estudiante de DAM. Amante de la fotografia y el desarrollo movil.';
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   CollectionReference<Map<String, dynamic>> get _users =>
       _firestore.collection('users');
@@ -25,34 +24,22 @@ class DatabaseService {
 
   String _userId(String username) => username.trim().toLowerCase();
 
-  bool _isRemoteUrl(String value) {
-    return value.startsWith('http://') || value.startsWith('https://');
+  bool _isPersistedImage(String value) {
+    return value.startsWith('http://') ||
+        value.startsWith('https://') ||
+        value.startsWith('data:image/');
   }
 
-  Future<String> _uploadFile({
-    required String path,
-    required String storagePath,
-  }) async {
-    if (path.isEmpty || path == 'placeholder' || _isRemoteUrl(path)) {
+  Future<String> _fileToDataUrl(String path) async {
+    if (path.isEmpty || path == 'placeholder' || _isPersistedImage(path)) {
       return path;
     }
 
     final file = File(path);
     if (!file.existsSync()) return path;
 
-    final ref = _storage.ref(storagePath);
-    await ref.putFile(file);
-    return ref.getDownloadURL();
-  }
-
-  Future<void> _deleteStorageUrl(String value) async {
-    if (!_isRemoteUrl(value)) return;
-    try {
-      await _storage.refFromURL(value).delete();
-    } catch (_) {
-      // The Firestore document is the source of truth; missing Storage files
-      // should not block deleting or updating data.
-    }
+    final bytes = await file.readAsBytes();
+    return 'data:image/jpeg;base64,${base64Encode(bytes)}';
   }
 
   // USERS
@@ -135,10 +122,7 @@ class DatabaseService {
 
     var photoUrl = existingPhoto;
     if (photoPath != null && photoPath.isNotEmpty && photoPath != photoUrl) {
-      photoUrl = await _uploadFile(
-        path: photoPath,
-        storagePath: 'users/$userId/profile.jpg',
-      );
+      photoUrl = await _fileToDataUrl(photoPath);
     }
 
     await ref.set({
@@ -153,10 +137,7 @@ class DatabaseService {
   // POSTS
   Future<String> createPost(PostModel post) async {
     final ref = _posts.doc();
-    final imagePath = await _uploadFile(
-      path: post.imagePath,
-      storagePath: 'posts/${ref.id}/image.jpg',
-    );
+    final imagePath = await _fileToDataUrl(post.imagePath);
 
     await ref.set({
       'user': post.user,
@@ -180,13 +161,10 @@ class DatabaseService {
 
   Future<void> deletePost(String id) async {
     final postRef = _posts.doc(id);
-    final post = await postRef.get();
-    final imagePath = post.data()?['imagePath'] as String? ?? '';
 
     await _deleteCollection(postRef.collection('likes'));
     await _deleteCollection(postRef.collection('comments'));
     await postRef.delete();
-    await _deleteStorageUrl(imagePath);
   }
 
   Future<void> _deleteCollection(

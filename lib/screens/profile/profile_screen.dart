@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -61,7 +63,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final picked = await _picker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 85,
+        maxWidth: 500,
+        imageQuality: 60,
       );
       if (picked == null) return;
 
@@ -143,6 +146,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   ImageProvider? _profileImageProvider() {
     final path = _photoPath;
     if (path == null || path.isEmpty) return null;
+    if (_isDataImage(path)) {
+      final bytes = _decodeDataImage(path);
+      return bytes == null ? null : MemoryImage(bytes);
+    }
     if (path.startsWith('http://') || path.startsWith('https://')) {
       return NetworkImage(path);
     }
@@ -153,6 +160,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   bool _isRemoteImage(String value) {
     return value.startsWith('http://') || value.startsWith('https://');
+  }
+
+  bool _isDataImage(String value) {
+    return value.startsWith('data:image/');
+  }
+
+  Uint8List? _decodeDataImage(String value) {
+    final commaIndex = value.indexOf(',');
+    if (commaIndex == -1) return null;
+    return base64Decode(value.substring(commaIndex + 1));
+  }
+
+  Widget _buildGridImage(String imagePath) {
+    if (_isDataImage(imagePath)) {
+      final bytes = _decodeDataImage(imagePath);
+      if (bytes != null) {
+        return Image.memory(bytes, fit: BoxFit.cover);
+      }
+    }
+
+    if (_isRemoteImage(imagePath)) {
+      return Image.network(imagePath, fit: BoxFit.cover);
+    }
+
+    return Image.file(File(imagePath), fit: BoxFit.cover);
   }
 
   @override
@@ -311,21 +343,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         final hasImage =
                             post.imagePath.isNotEmpty &&
                             post.imagePath != 'placeholder' &&
-                            (_isRemoteImage(post.imagePath) ||
+                            (_isDataImage(post.imagePath) ||
+                                _isRemoteImage(post.imagePath) ||
                                 File(post.imagePath).existsSync());
 
                         return InkWell(
                           onTap: () => _openPost(post),
                           child: hasImage
-                              ? _isRemoteImage(post.imagePath)
-                                    ? Image.network(
-                                        post.imagePath,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Image.file(
-                                        File(post.imagePath),
-                                        fit: BoxFit.cover,
-                                      )
+                              ? _buildGridImage(post.imagePath)
                               : Container(
                                   color:
                                       theme.colorScheme.surfaceContainerHighest,

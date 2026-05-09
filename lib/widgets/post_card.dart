@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
@@ -153,6 +155,16 @@ class _PostCardState extends State<PostCard> {
     return value.startsWith('http://') || value.startsWith('https://');
   }
 
+  bool _isDataImage(String value) {
+    return value.startsWith('data:image/');
+  }
+
+  Uint8List? _decodeDataImage(String value) {
+    final commaIndex = value.indexOf(',');
+    if (commaIndex == -1) return null;
+    return base64Decode(value.substring(commaIndex + 1));
+  }
+
   Widget _buildImageError(ThemeData theme) {
     return Container(
       height: 140,
@@ -168,6 +180,18 @@ class _PostCardState extends State<PostCard> {
   }
 
   Widget _buildPostImage(String imagePath, ThemeData theme) {
+    if (_isDataImage(imagePath)) {
+      final bytes = _decodeDataImage(imagePath);
+      if (bytes == null) return _buildImageError(theme);
+      return Image.memory(
+        bytes,
+        width: double.infinity,
+        height: 300,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildImageError(theme),
+      );
+    }
+
     if (_isRemoteImage(imagePath)) {
       return Image.network(
         imagePath,
