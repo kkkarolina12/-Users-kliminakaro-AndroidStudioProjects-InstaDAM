@@ -30,6 +30,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  int _feedRefreshVersion = 0;
 
   // Usamos una lista de funciones para reconstruir las pantallas si es necesario,
   // o simplemente los widgets si son mayormente estáticos.
@@ -45,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void didUpdateWidget(HomeScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.isDarkMode != widget.isDarkMode || 
+    if (oldWidget.isDarkMode != widget.isDarkMode ||
         oldWidget.currentLang != widget.currentLang ||
         oldWidget.username != widget.username) {
       _updateScreens();
@@ -55,6 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _updateScreens() {
     _screens = [
       FeedScreen(
+        key: ValueKey('feed-$_feedRefreshVersion'),
         username: widget.username,
         onThemeChanged: widget.onThemeChanged,
         onLanguageChanged: widget.onLanguageChanged,
@@ -63,7 +65,11 @@ class _HomeScreenState extends State<HomeScreen> {
         onLogout: widget.onLogout,
       ),
       SearchScreen(currentLang: widget.currentLang),
-      CreatePostScreen(username: widget.username, currentLang: widget.currentLang),
+      CreatePostScreen(
+        username: widget.username,
+        currentLang: widget.currentLang,
+        onPostCreated: _handlePostCreated,
+      ),
       ProfileScreen(username: widget.username, currentLang: widget.currentLang),
       SettingsScreen(
         isDarkMode: widget.isDarkMode,
@@ -75,6 +81,14 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
   }
 
+  void _handlePostCreated() {
+    setState(() {
+      _selectedIndex = 0;
+      _feedRefreshVersion++;
+      _updateScreens();
+    });
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -84,45 +98,45 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed, // Asegura que se vean todos los items
+        type: BottomNavigationBarType.fixed,
         selectedItemColor: Theme.of(context).primaryColor,
         unselectedItemColor: Colors.grey,
         showSelectedLabels: true,
         showUnselectedLabels: true,
-      items: [
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.home_outlined),
-          activeIcon: const Icon(Icons.home),
-          label: LocalizationService.translate('home', widget.currentLang),
-        ),
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.search),
-          activeIcon: const Icon(Icons.search_rounded),
-          label: LocalizationService.translate('search', widget.currentLang),
-        ),
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.add_box_outlined),
-          activeIcon: const Icon(Icons.add_box),
-          label: LocalizationService.translate('create', widget.currentLang),
-        ),
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.person_outline),
-          activeIcon: const Icon(Icons.person),
-          label: LocalizationService.translate('profile', widget.currentLang),
-        ),
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.settings_outlined),
-          activeIcon: const Icon(Icons.settings),
-          label: LocalizationService.translate('settings', widget.currentLang),
-        ),
-      ],
+        items: [
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.home_outlined),
+            activeIcon: const Icon(Icons.home),
+            label: LocalizationService.translate('home', widget.currentLang),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.search),
+            activeIcon: const Icon(Icons.search_rounded),
+            label: LocalizationService.translate('search', widget.currentLang),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.add_box_outlined),
+            activeIcon: const Icon(Icons.add_box),
+            label: LocalizationService.translate('create', widget.currentLang),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.person_outline),
+            activeIcon: const Icon(Icons.person),
+            label: LocalizationService.translate('profile', widget.currentLang),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.settings_outlined),
+            activeIcon: const Icon(Icons.settings),
+            label: LocalizationService.translate(
+              'settings',
+              widget.currentLang,
+            ),
+          ),
+        ],
       ),
     );
   }

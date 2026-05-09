@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../models/post_model.dart';
 import '../../services/database_service.dart';
-import '../../services/localization_service.dart';
 
 class CreatePostScreen extends StatefulWidget {
   final String username;
@@ -81,16 +80,18 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            content: Text('No se pudo seleccionar la imagen.'),
-          ),
+          const SnackBar(content: Text('No se pudo seleccionar la imagen.')),
         );
     }
   }
 
   void _announceError(String message) {
     if (!mounted) return;
-    SemanticsService.announce(message, Directionality.of(context), assertiveness: Assertiveness.assertive);
+    SemanticsService.announce(
+      message,
+      Directionality.of(context),
+      assertiveness: Assertiveness.assertive,
+    );
   }
 
   Future<void> _save() async {
@@ -143,7 +144,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         assertiveness: Assertiveness.assertive,
       );
 
-      Navigator.pop(context, true);
+      if (widget.onPostCreated != null) {
+        widget.onPostCreated!();
+      } else {
+        Navigator.pop(context, true);
+      }
     } catch (_) {
       if (!mounted) return;
 
@@ -196,47 +201,51 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           ),
           child: hasImage
               ? ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Image.file(
-              _selectedImage!,
-              height: 220,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              excludeFromSemantics: true,
-              errorBuilder: (context, error, stackTrace) {
-                return SizedBox(
-                  height: 220,
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.file(
+                    _selectedImage!,
+                    height: 220,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    excludeFromSemantics: true,
+                    errorBuilder: (context, error, stackTrace) {
+                      return SizedBox(
+                        height: 220,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            ExcludeSemantics(
+                              child: Icon(
+                                Icons.broken_image_outlined,
+                                size: 56,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            ExcludeSemantics(
+                              child: Text('No se pudo mostrar la imagen'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                )
+              : SizedBox(
+                  height: 180,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
                       ExcludeSemantics(
-                        child: Icon(Icons.broken_image_outlined, size: 56),
+                        child: Icon(
+                          Icons.add_photo_alternate_outlined,
+                          size: 56,
+                        ),
                       ),
-                      SizedBox(height: 8),
-                      ExcludeSemantics(
-                        child: Text('No se pudo mostrar la imagen'),
-                      ),
+                      SizedBox(height: 10),
+                      ExcludeSemantics(child: Text('Seleccionar imagen')),
                     ],
                   ),
-                );
-              },
-            ),
-          )
-              : SizedBox(
-            height: 180,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                ExcludeSemantics(
-                  child: Icon(Icons.add_photo_alternate_outlined, size: 56),
                 ),
-                SizedBox(height: 10),
-                ExcludeSemantics(
-                  child: Text('Seleccionar imagen'),
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );
@@ -248,10 +257,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       children: [
         const Text(
           'Descripción *',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -303,17 +309,17 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           ),
           child: _saving
               ? Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2.4),
-              ),
-              SizedBox(width: 12),
-              Text('Publicando...'),
-            ],
-          )
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2.4),
+                    ),
+                    SizedBox(width: 12),
+                    Text('Publicando...'),
+                  ],
+                )
               : const Text('Publicar'),
         ),
       ),
@@ -323,9 +329,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Nuevo post'),
-      ),
+      appBar: AppBar(title: const Text('Nuevo post')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
