@@ -18,7 +18,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: const Color(0xFFFAF8FF),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -36,7 +36,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 'InstaDAM',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1F3864),
+                  color: const Color(0xFF673AB7),
                 ),
               ),
               const SizedBox(height: 32),
@@ -53,11 +53,11 @@ class _AuthScreenState extends State<AuthScreen> {
                         onPressed: () => setState(() => _showLogin = true),
                         style: TextButton.styleFrom(
                           foregroundColor: _showLogin
-                              ? const Color(0xFF1F3864)
+                              ? const Color(0xFF673AB7)
                               : Colors.grey,
                           side: _showLogin
                               ? const BorderSide(
-                                  color: Color(0xFF1F3864),
+                                  color: Color(0xFF673AB7),
                                   width: 2,
                                 )
                               : BorderSide.none,
@@ -88,11 +88,11 @@ class _AuthScreenState extends State<AuthScreen> {
                         onPressed: () => setState(() => _showLogin = false),
                         style: TextButton.styleFrom(
                           foregroundColor: !_showLogin
-                              ? const Color(0xFF1F3864)
+                              ? const Color(0xFF673AB7)
                               : Colors.grey,
                           side: !_showLogin
                               ? const BorderSide(
-                                  color: Color(0xFF1F3864),
+                                  color: Color(0xFF673AB7),
                                   width: 2,
                                 )
                               : BorderSide.none,
@@ -114,17 +114,28 @@ class _AuthScreenState extends State<AuthScreen> {
                 ],
               ),
               const SizedBox(height: 24),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: _showLogin
-                    ? LoginForm(
-                        key: const ValueKey('login'),
-                        onAuthenticated: widget.onAuthenticated,
-                      )
-                    : RegisterForm(
-                        key: const ValueKey('register'),
-                        onAuthenticated: widget.onAuthenticated,
-                      ),
+              Card(
+                elevation: 0,
+                color: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  side: const BorderSide(color: Color(0xFFE6DFF0)),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 20, 18, 4),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: _showLogin
+                        ? LoginForm(
+                            key: const ValueKey('login'),
+                            onAuthenticated: widget.onAuthenticated,
+                          )
+                        : RegisterForm(
+                            key: const ValueKey('register'),
+                            onAuthenticated: widget.onAuthenticated,
+                          ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -172,7 +183,7 @@ class LabeledField extends StatelessWidget {
             fontWeight: FontWeight.w600,
             color: errorText != null
                 ? Colors.red[700]
-                : const Color(0xFF1F3864),
+                : const Color(0xFF673AB7),
           ),
         ),
         const SizedBox(height: 6),
@@ -195,18 +206,18 @@ class LabeledField extends StatelessWidget {
             fillColor: Colors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFCCCCCC)),
+              borderSide: const BorderSide(color: Color(0xFFE4DDEC)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide(
-                color: errorText != null ? Colors.red : const Color(0xFFCCCCCC),
+                color: errorText != null ? Colors.red : const Color(0xFFE4DDEC),
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide(
-                color: errorText != null ? Colors.red : const Color(0xFF1F3864),
+                color: errorText != null ? Colors.red : const Color(0xFF673AB7),
                 width: 2,
               ),
             ),
@@ -263,8 +274,9 @@ class _LoginFormState extends State<LoginForm> {
 
   String? _validatePass(String pass) {
     if (pass.isEmpty) return 'La contraseña es obligatoria';
-    if (pass.length < 6)
+    if (pass.length < 6) {
       return 'La contraseña debe tener al menos 6 caracteres';
+    }
     return null;
   }
 
@@ -353,7 +365,7 @@ class _LoginFormState extends State<LoginForm> {
               toggled: _rememberUser,
               child: Switch(
                 value: _rememberUser,
-                activeColor: const Color(0xFF1F3864),
+                activeThumbColor: const Color(0xFF673AB7),
                 onChanged: (val) => setState(() => _rememberUser = val),
               ),
             ),
@@ -362,7 +374,7 @@ class _LoginFormState extends State<LoginForm> {
               onTap: () => setState(() => _rememberUser = !_rememberUser),
               child: const Text(
                 'Recordar usuario',
-                style: TextStyle(fontSize: 15, color: Color(0xFF333333)),
+                style: TextStyle(fontSize: 15, color: Color(0xFF1D1728)),
               ),
             ),
           ],
@@ -412,7 +424,7 @@ class _LoginFormState extends State<LoginForm> {
           child: ElevatedButton(
             onPressed: _isLoading ? null : _handleLogin,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1F3864),
+              backgroundColor: const Color(0xFF673AB7),
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 48),
               shape: RoundedRectangleBorder(
@@ -633,7 +645,7 @@ class _RegisterFormState extends State<RegisterForm> {
               toggled: _acceptTerms,
               child: Checkbox(
                 value: _acceptTerms,
-                activeColor: const Color(0xFF1F3864),
+                activeColor: const Color(0xFF673AB7),
                 onChanged: (val) => setState(() => _acceptTerms = val ?? false),
               ),
             ),
@@ -717,7 +729,7 @@ class _RegisterFormState extends State<RegisterForm> {
           child: ElevatedButton(
             onPressed: _isLoading ? null : _handleRegister,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1F3864),
+              backgroundColor: const Color(0xFF673AB7),
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 48),
               shape: RoundedRectangleBorder(

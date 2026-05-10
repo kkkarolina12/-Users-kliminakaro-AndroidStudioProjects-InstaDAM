@@ -206,101 +206,141 @@ class _ProfileScreenState extends State<ProfileScreen> {
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        GestureDetector(
-                          onTap: _pickProfilePhoto,
-                          child: Stack(
-                            alignment: Alignment.bottomRight,
-                            children: [
-                              CircleAvatar(
-                                radius: 40,
-                                backgroundColor:
-                                    theme.colorScheme.primaryContainer,
-                                backgroundImage: photo,
-                                child: photo == null
-                                    ? Text(
-                                        widget.username.isNotEmpty
-                                            ? widget.username[0].toUpperCase()
-                                            : '?',
-                                        style: TextStyle(
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.bold,
-                                          color: theme
-                                              .colorScheme
-                                              .onPrimaryContainer,
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: _pickProfilePhoto,
+                                  child: Stack(
+                                    alignment: Alignment.bottomRight,
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 42,
+                                        backgroundColor:
+                                            theme.colorScheme.primaryContainer,
+                                        backgroundImage: photo,
+                                        child: photo == null
+                                            ? Text(
+                                                widget.username.isNotEmpty
+                                                    ? widget.username[0]
+                                                          .toUpperCase()
+                                                    : '?',
+                                                style: TextStyle(
+                                                  fontSize: 32,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: theme
+                                                      .colorScheme
+                                                      .onPrimaryContainer,
+                                                ),
+                                              )
+                                            : null,
+                                      ),
+                                      CircleAvatar(
+                                        radius: 14,
+                                        backgroundColor:
+                                            theme.colorScheme.primary,
+                                        child: Icon(
+                                          Icons.camera_alt,
+                                          size: 15,
+                                          color: theme.colorScheme.onPrimary,
                                         ),
-                                      )
-                                    : null,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      _buildStatColumn(
+                                        context,
+                                        t('posts'),
+                                        _postsCount.toString(),
+                                      ),
+                                      _buildStatColumn(
+                                        context,
+                                        t('followers'),
+                                        '120',
+                                      ),
+                                      _buildStatColumn(
+                                        context,
+                                        t('following'),
+                                        '150',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              _name,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w900,
                               ),
-                              CircleAvatar(
-                                radius: 13,
-                                backgroundColor: theme.colorScheme.primary,
-                                child: Icon(
-                                  Icons.camera_alt,
-                                  size: 15,
-                                  color: theme.colorScheme.onPrimary,
+                            ),
+                            if (_bio.trim().isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                _bio,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  height: 1.35,
                                 ),
                               ),
                             ],
-                          ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton(
+                                    onPressed: _editProfile,
+                                    child: Text(t('edit_profile')),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: _pickProfilePhoto,
+                                    icon: const Icon(
+                                      Icons.photo_library_outlined,
+                                    ),
+                                    label: Text(t('change_photo')),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              _buildStatColumn(
-                                context,
-                                t('posts'),
-                                _postsCount.toString(),
-                              ),
-                              _buildStatColumn(context, t('followers'), '120'),
-                              _buildStatColumn(context, t('following'), '150'),
-                            ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.grid_on,
+                          size: 18,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          t('posts'),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      _name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(_bio),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: _editProfile,
-                        style: OutlinedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(
-                          t('edit_profile'),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: _pickProfilePhoto,
-                        icon: const Icon(Icons.photo_library_outlined),
-                        label: Text(t('change_photo')),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Divider(height: 1),
                     const SizedBox(height: 12),
                   ],
                 ),

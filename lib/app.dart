@@ -64,9 +64,7 @@ class _InstaDAMAppState extends State<InstaDAMApp> {
   Widget build(BuildContext context) {
     if (!_ready) {
       return const MaterialApp(
-        home: Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        ),
+        home: Scaffold(body: Center(child: CircularProgressIndicator())),
       );
     }
 
@@ -78,16 +76,14 @@ class _InstaDAMAppState extends State<InstaDAMApp> {
       themeMode: _themeMode,
       home: _rememberedUser != null && _rememberedUser!.isNotEmpty
           ? HomeScreen(
-        username: _rememberedUser!,
-        onThemeChanged: _setTheme,
-        onLanguageChanged: _setLanguage,
-        currentLang: _lang,
-        isDarkMode: _themeMode == ThemeMode.dark,
-        onLogout: _handleLogout,
-      )
-          : AuthScreen(
-        onAuthenticated: _handleAuthenticated,
-      ),
+              username: _rememberedUser!,
+              onThemeChanged: _setTheme,
+              onLanguageChanged: _setLanguage,
+              currentLang: _lang,
+              isDarkMode: _themeMode == ThemeMode.dark,
+              onLogout: _handleLogout,
+            )
+          : AuthScreen(onAuthenticated: _handleAuthenticated),
     );
   }
 }

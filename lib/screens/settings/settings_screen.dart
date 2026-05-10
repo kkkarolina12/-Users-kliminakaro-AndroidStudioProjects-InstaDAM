@@ -75,9 +75,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       applicationVersion: '1.0.0',
       applicationIcon: Image.asset('assets/Logo.png', width: 50, height: 50),
       children: const [
-        Text(
-          'Una aplicación tipo Instagram mejorada para el proyecto InstaDAM.',
-        ),
+        Text('Una aplicacion tipo Instagram para el proyecto InstaDAM.'),
       ],
     );
   }
@@ -157,85 +155,116 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(t('settings')), centerTitle: true),
       body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              t('account'),
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.primary,
+          _SettingsSection(
+            title: t('account'),
+            children: [
+              ListTile(
+                leading: const Icon(Icons.person_outline),
+                title: Text(t('edit_profile')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: _editProfile,
               ),
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.person_outline),
-            title: Text(t('edit_profile')),
-            onTap: _editProfile,
-          ),
-          ListTile(
-            leading: const Icon(Icons.camera_alt_outlined),
-            title: Text(t('change_photo')),
-            onTap: _changeProfilePhoto,
-          ),
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              t('preferences'),
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.primary,
+              ListTile(
+                leading: const Icon(Icons.camera_alt_outlined),
+                title: Text(t('change_photo')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: _changeProfilePhoto,
               ),
-            ),
+            ],
           ),
-          SwitchListTile(
-            secondary: const Icon(Icons.dark_mode_outlined),
-            value: _dark,
-            title: Text(t('dark_mode')),
-            onChanged: _changeTheme,
+          const SizedBox(height: 14),
+          _SettingsSection(
+            title: t('preferences'),
+            children: [
+              SwitchListTile(
+                secondary: const Icon(Icons.dark_mode_outlined),
+                value: _dark,
+                title: Text(t('dark_mode')),
+                onChanged: _changeTheme,
+              ),
+              SwitchListTile(
+                secondary: const Icon(Icons.notifications_outlined),
+                value: _noti,
+                title: Text(t('notifications')),
+                onChanged: (v) async {
+                  setState(() => _noti = v);
+                  await _prefs.setNotifications(v);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.language_outlined),
+                title: Text(t('language')),
+                trailing: DropdownButton<String>(
+                  value: _lang,
+                  underline: const SizedBox(),
+                  items: const [
+                    DropdownMenuItem(value: 'es', child: Text('Espanol')),
+                    DropdownMenuItem(value: 'ca', child: Text('Catala')),
+                  ],
+                  onChanged: (v) {
+                    if (v == null) return;
+                    _changeLanguage(v);
+                  },
+                ),
+              ),
+            ],
           ),
-          SwitchListTile(
-            secondary: const Icon(Icons.notifications_outlined),
-            value: _noti,
-            title: Text(t('notifications')),
-            onChanged: (v) async {
-              setState(() => _noti = v);
-              await _prefs.setNotifications(v);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.language_outlined),
-            title: Text(t('language')),
-            trailing: DropdownButton<String>(
-              value: _lang,
-              underline: const SizedBox(),
-              items: const [
-                DropdownMenuItem(value: 'es', child: Text('Español')),
-                DropdownMenuItem(value: 'ca', child: Text('Català')),
-              ],
-              onChanged: (v) {
-                if (v == null) return;
-                _changeLanguage(v);
-              },
-            ),
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: Text(t('app_info')),
-            onTap: _showAppInfo,
-          ),
-          ListTile(
-            leading: Icon(Icons.logout, color: colorScheme.error),
-            title: Text(
-              t('logout'),
-              style: TextStyle(color: colorScheme.error),
-            ),
-            onTap: _logout,
+          const SizedBox(height: 14),
+          _SettingsSection(
+            title: 'InstaDAM',
+            children: [
+              ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: Text(t('app_info')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: _showAppInfo,
+              ),
+              ListTile(
+                leading: Icon(Icons.logout, color: colorScheme.error),
+                title: Text(
+                  t('logout'),
+                  style: TextStyle(
+                    color: colorScheme.error,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                onTap: _logout,
+              ),
+            ],
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SettingsSection extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _SettingsSection({required this.title, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+          child: Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              color: colorScheme.primary,
+            ),
+          ),
+        ),
+        Card(child: Column(children: children)),
+      ],
     );
   }
 }

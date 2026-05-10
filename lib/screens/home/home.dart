@@ -102,44 +102,68 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       body: IndexedStack(index: _selectedIndex, children: _screens),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: colorScheme.primary,
-        unselectedItemColor: colorScheme.onSurfaceVariant,
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.home_outlined),
-            activeIcon: const Icon(Icons.home),
-            label: LocalizationService.translate('home', widget.currentLang),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.search),
-            activeIcon: const Icon(Icons.search_rounded),
-            label: LocalizationService.translate('search', widget.currentLang),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.add_box_outlined),
-            activeIcon: const Icon(Icons.add_box),
-            label: LocalizationService.translate('create', widget.currentLang),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.person_outline),
-            activeIcon: const Icon(Icons.person),
-            label: LocalizationService.translate('profile', widget.currentLang),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.settings_outlined),
-            activeIcon: const Icon(Icons.settings),
-            label: LocalizationService.translate(
-              'settings',
-              widget.currentLang,
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: BottomNavigationBar(
+              currentIndex: _selectedIndex,
+              onTap: _onItemTapped,
+              type: BottomNavigationBarType.fixed,
+              selectedItemColor: colorScheme.primary,
+              unselectedItemColor: colorScheme.onSurfaceVariant,
+              showSelectedLabels: true,
+              showUnselectedLabels: true,
+              items: [
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.home_outlined),
+                  activeIcon: const Icon(Icons.home),
+                  label: LocalizationService.translate(
+                    'home',
+                    widget.currentLang,
+                  ),
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.search),
+                  activeIcon: const Icon(Icons.search_rounded),
+                  label: LocalizationService.translate(
+                    'search',
+                    widget.currentLang,
+                  ),
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.add_box_outlined),
+                  activeIcon: const Icon(Icons.add_box),
+                  label: LocalizationService.translate(
+                    'create',
+                    widget.currentLang,
+                  ),
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.person_outline),
+                  activeIcon: const Icon(Icons.person),
+                  label: LocalizationService.translate(
+                    'profile',
+                    widget.currentLang,
+                  ),
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.settings_outlined),
+                  activeIcon: const Icon(Icons.settings),
+                  label: LocalizationService.translate(
+                    'settings',
+                    widget.currentLang,
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

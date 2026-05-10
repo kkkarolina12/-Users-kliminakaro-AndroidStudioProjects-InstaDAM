@@ -52,7 +52,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
       if (picked == null) {
         if (!mounted) return;
-        SemanticsService.announce(
+        SemanticsService.sendAnnouncement(
+          View.of(context),
           'Selección de imagen cancelada.',
           Directionality.of(context),
           assertiveness: Assertiveness.assertive,
@@ -65,14 +66,16 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       });
 
       if (!mounted) return;
-      SemanticsService.announce(
+      SemanticsService.sendAnnouncement(
+        View.of(context),
         'Imagen seleccionada correctamente.',
         Directionality.of(context),
         assertiveness: Assertiveness.assertive,
       );
     } catch (_) {
       if (!mounted) return;
-      SemanticsService.announce(
+      SemanticsService.sendAnnouncement(
+        View.of(context),
         'Error al seleccionar la imagen.',
         Directionality.of(context),
         assertiveness: Assertiveness.assertive,
@@ -88,7 +91,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   void _announceError(String message) {
     if (!mounted) return;
-    SemanticsService.announce(
+    SemanticsService.sendAnnouncement(
+      View.of(context),
       message,
       Directionality.of(context),
       assertiveness: Assertiveness.assertive,
@@ -139,7 +143,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           ),
         );
 
-      SemanticsService.announce(
+      SemanticsService.sendAnnouncement(
+        View.of(context),
         'Publicación creada correctamente.',
         Directionality.of(context),
         assertiveness: Assertiveness.assertive,
@@ -346,18 +351,23 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       appBar: AppBar(title: const Text('Nuevo post')),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           child: Form(
             key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildImageSelector(),
-                const SizedBox(height: 20),
-                _buildDescriptionField(),
-                const SizedBox(height: 20),
-                _buildPublishButton(),
-              ],
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildImageSelector(),
+                    const SizedBox(height: 20),
+                    _buildDescriptionField(),
+                    const SizedBox(height: 20),
+                    _buildPublishButton(),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

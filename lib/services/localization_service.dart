@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class LocalizationService {
   static final Map<String, Map<String, String>> _translations = {
     'es': {
@@ -73,7 +71,7 @@ class LocalizationService {
       'post': 'Publicació',
       'search_hint': 'Buscar...',
       'search_coming': 'Funcionalitat de cerca pròximament',
-    }
+    },
   };
 
   static String translate(String key, String lang) {

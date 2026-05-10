@@ -53,7 +53,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
         SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
       );
 
-    SemanticsService.announce(
+    SemanticsService.sendAnnouncement(
+      View.of(context),
       message,
       Directionality.of(context),
       assertiveness: Assertiveness.assertive,

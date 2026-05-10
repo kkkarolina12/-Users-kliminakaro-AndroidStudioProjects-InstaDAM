@@ -33,16 +33,20 @@ class LikeButton extends StatelessWidget {
         icon: ExcludeSemantics(
           child: Icon(
             isLiked ? Icons.favorite : Icons.favorite_border,
-            color: isLiked ? Colors.red : theme.iconTheme.color,
+            color: isLiked ? const Color(0xFFE23D5B) : theme.iconTheme.color,
           ),
         ),
-        label: ExcludeSemantics(
-          child: Text(isLiked ? 'Te gusta' : 'Me gusta'),
-        ),
+        label: ExcludeSemantics(child: Text(isLiked ? 'Te gusta' : 'Me gusta')),
         style: OutlinedButton.styleFrom(
           minimumSize: const Size.fromHeight(46),
+          foregroundColor: isLiked
+              ? const Color(0xFFE23D5B)
+              : theme.colorScheme.primary,
+          backgroundColor: isLiked
+              ? const Color(0xFFFFEEF2)
+              : theme.colorScheme.surface,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
       ),

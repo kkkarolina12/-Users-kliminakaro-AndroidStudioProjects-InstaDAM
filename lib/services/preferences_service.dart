@@ -54,7 +54,11 @@ class PreferencesService {
     return p.getBool(_kNotifications) ?? true;
   }
 
-  Future<void> setProfile({required String name, String? photoPath, String? bio}) async {
+  Future<void> setProfile({
+    required String name,
+    String? photoPath,
+    String? bio,
+  }) async {
     final p = await SharedPreferences.getInstance();
     await p.setString(_kProfileName, name);
     if (photoPath != null) await p.setString(_kProfilePhoto, photoPath);
@@ -73,7 +77,8 @@ class PreferencesService {
 
   Future<String> getProfileBio() async {
     final p = await SharedPreferences.getInstance();
-    return p.getString(_kProfileBio) ?? 'Estudiante de DAM. Amante de la fotografía y el desarrollo móvil. 🚀';
+    return p.getString(_kProfileBio) ??
+        'Estudiante de DAM. Amante de la fotografía y el desarrollo móvil. 🚀';
   }
 
   Future<void> clearAll() async {

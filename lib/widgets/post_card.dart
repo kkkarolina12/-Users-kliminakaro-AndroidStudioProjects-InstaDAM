@@ -167,7 +167,7 @@ class _PostCardState extends State<PostCard> {
 
   Widget _buildImageError(ThemeData theme) {
     return Container(
-      height: 140,
+      height: 220,
       color: theme.colorScheme.surfaceContainerHighest,
       child: Center(
         child: Icon(
@@ -188,7 +188,7 @@ class _PostCardState extends State<PostCard> {
         width: double.infinity,
         height: 300,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _buildImageError(theme),
+        errorBuilder: (context, error, stackTrace) => _buildImageError(theme),
       );
     }
 
@@ -198,7 +198,7 @@ class _PostCardState extends State<PostCard> {
         width: double.infinity,
         height: 300,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _buildImageError(theme),
+        errorBuilder: (context, error, stackTrace) => _buildImageError(theme),
       );
     }
 
@@ -207,7 +207,7 @@ class _PostCardState extends State<PostCard> {
       width: double.infinity,
       height: 300,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => _buildImageError(theme),
+      errorBuilder: (context, error, stackTrace) => _buildImageError(theme),
     );
   }
 
@@ -219,24 +219,28 @@ class _PostCardState extends State<PostCard> {
         post.imagePath.isNotEmpty && post.imagePath != 'placeholder';
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 18),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+            padding: const EdgeInsets.fromLTRB(14, 14, 10, 10),
             child: Row(
               children: [
                 CircleAvatar(
+                  radius: 22,
+                  backgroundColor: theme.colorScheme.primaryContainer,
                   child: Text(
                     post.user.isNotEmpty ? post.user[0].toUpperCase() : '?',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      color: theme.colorScheme.onPrimaryContainer,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,7 +248,7 @@ class _PostCardState extends State<PostCard> {
                       Text(
                         '@${post.user}',
                         style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
                       Text(
@@ -297,20 +301,23 @@ class _PostCardState extends State<PostCard> {
 
           // Image
           if (hasImage)
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.zero),
+            AspectRatio(
+              aspectRatio: 1,
               child: _buildPostImage(post.imagePath, theme),
             ),
 
           // Description
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
-            child: Text(post.description, style: theme.textTheme.bodyMedium),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+            child: Text(
+              post.description,
+              style: theme.textTheme.bodyMedium?.copyWith(height: 1.35),
+            ),
           ),
 
           // Likes count
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               '${post.likes} me gusta',
               style: theme.textTheme.bodySmall?.copyWith(
@@ -319,11 +326,11 @@ class _PostCardState extends State<PostCard> {
             ),
           ),
 
-          const Divider(height: 16, indent: 12, endIndent: 12),
+          Divider(height: 18, indent: 16, endIndent: 16),
 
           // Actions
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
             child: Row(
               children: [
                 Expanded(

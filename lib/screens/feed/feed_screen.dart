@@ -57,7 +57,8 @@ class _FeedScreenState extends State<FeedScreen> {
     });
 
     if (!initialLoad) {
-      SemanticsService.announce(
+      SemanticsService.sendAnnouncement(
+        View.of(context),
         'Feed actualizado. ${_posts.length} publicaciones disponibles.',
         Directionality.of(context),
         assertiveness: Assertiveness.assertive,
@@ -134,6 +135,24 @@ class _FeedScreenState extends State<FeedScreen> {
             ],
           ),
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Crear publicacion',
+            onPressed: _goCreatePost,
+            icon: const Icon(Icons.add_box_outlined),
+          ),
+          IconButton(
+            tooltip: 'Perfil',
+            onPressed: _goProfile,
+            icon: const Icon(Icons.account_circle_outlined),
+          ),
+          IconButton(
+            tooltip: 'Ajustes',
+            onPressed: _goSettings,
+            icon: const Icon(Icons.tune),
+          ),
+          const SizedBox(width: 4),
+        ],
       ),
       body: _loading
           ? Center(
@@ -148,31 +167,52 @@ class _FeedScreenState extends State<FeedScreen> {
                 padding: const EdgeInsets.all(24),
                 child: Semantics(
                   label: 'No hay publicaciones en el feed',
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.photo_library_outlined,
-                        size: 56,
-                        color: theme.colorScheme.primary,
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(28),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 72,
+                            height: 72,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Icon(
+                              Icons.photo_library_outlined,
+                              size: 38,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            widget.currentLang == 'ca'
+                                ? 'Encara no hi ha publicacions'
+                                : 'Todavía no hay publicaciones',
+                            style: theme.textTheme.titleMedium,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            widget.currentLang == 'ca'
+                                ? 'Crea la primera publicació per començar.'
+                                : 'Crea la primera publicación para empezar.',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 18),
+                          FilledButton.icon(
+                            onPressed: _goCreatePost,
+                            icon: const Icon(Icons.add),
+                            label: const Text('Crear post'),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        widget.currentLang == 'ca'
-                            ? 'Encara no hi ha publicacions'
-                            : 'Todavía no hay publicaciones',
-                        style: theme.textTheme.titleMedium,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        widget.currentLang == 'ca'
-                            ? 'Crea la primera publicació per començar.'
-                            : 'Crea la primera publicación para empezar.',
-                        style: theme.textTheme.bodyMedium,
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
